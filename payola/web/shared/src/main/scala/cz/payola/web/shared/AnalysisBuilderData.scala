@@ -64,6 +64,30 @@ import cz.payola.common.entities.plugins._
         successCallback(true)
     }
 
+    @async def setAnalysisAsk(id: String, ask: String, user: User = null)
+        (successCallback: (Boolean => Unit))
+        (failCallback: (Throwable => Unit)) {
+        val analysis = Payola.model.analysisModel.getById(id)
+        analysis.map {
+            a =>
+                a.ask = ask
+                Payola.model.analysisModel.persist(a)
+        }
+        successCallback(true)
+    }
+
+    @async def setAnalysisTtl(id: String, ttl: String, user: User = null)
+        (successCallback: (Boolean => Unit))
+        (failCallback: (Throwable => Unit)) {
+        val analysis = Payola.model.analysisModel.getById(id)
+        analysis.map {
+            a =>
+                a.ttl = ttl
+                Payola.model.analysisModel.persist(a)
+        }
+        successCallback(true)
+    }
+
     @async def createPluginInstance(pluginId: String, analysisId: String, user: User = null)
         (successCallback: (PluginInstance => Unit))
         (failCallback: (Throwable => Unit)) {

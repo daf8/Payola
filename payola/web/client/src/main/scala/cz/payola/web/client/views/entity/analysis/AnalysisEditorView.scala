@@ -9,14 +9,21 @@ import cz.payola.web.client.views.elements.form.fields._
 import s2js.adapters.browser.`package`._
 import scala.Some
 import cz.payola.web.client.models.PrefixApplier
+import s2js.compiler.javascript
 
-class AnalysisEditorView(analysis: Analysis, newName: Option[String], newDesc: Option[String], pageTitle: String, prefixApplier: PrefixApplier) extends ComposedView
+class AnalysisEditorView(analysis: Analysis, newName: Option[String], newDesc: Option[String], newAsk: Option[String], newTtl: Option[String], pageTitle: String, prefixApplier: PrefixApplier) extends ComposedView
 {
     val name = new InputControl("Analysis name:", new TextInput("name", if(newName.isDefined){newName.get}else{analysis.name}, "Analysis name"), Some("nofloat"))
 
     val description = new InputControl("Description:", new TextArea("description",  if(newDesc.isDefined){newDesc.get}else{analysis.description}, "Anaylsis description"), Some("nofloat"))
 
-    protected val properties = new Div(List(name, description))
+    val ask = new InputControl("SPARQL ASK query:", new TextArea("ask",  if(newAsk.isDefined){newAsk.get}else{analysis.ask}, "ASK query"), Some("nofloat"))
+
+    val ttl = new InputControl("RDF data sample in turtle:", new TextArea("ttl",  if(newTtl.isDefined){newTtl.get}else{analysis.ttl}, "RDF data sample in turtle"), Some("nofloat"))
+
+    val ttlFileInput = new InputControl("Load turtle from file: ", new FileInput("ttlFile", "", "span10"), Some("nofloat"))
+
+    protected val properties = new Div(List(name, description, ask, ttl, ttlFileInput))
 
     val addPluginLink = new Anchor(List(new Icon(Icon.hdd), new Text(" Add plugin")))
 
@@ -55,6 +62,8 @@ class AnalysisEditorView(analysis: Analysis, newName: Option[String], newDesc: O
 
     name.field.addCssClass("span12")
     description.field.addCssClass("span12")
+    ask.field.addCssClass("span12")
+    ttl.field.addCssClass("span12")
 
     def setName(newValue: String) {
         name.field.value = newValue

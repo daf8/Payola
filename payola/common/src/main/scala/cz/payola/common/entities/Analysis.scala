@@ -11,7 +11,7 @@ import cz.payola.common.entities.analyses.PluginInstanceBinding
   * outputs bound, no input nor output is bound more than once and there is one plugin instance that doesn't have its
   * output bound. That is the analysis output. If the analysis is in the valid state, it may be evaluated.
   */
-trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with ShareableEntity with DescribedEntity
+trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with ShareableEntity with DescribedEntity with AskedEntity with TtlEntity
 {
     /** Type of the analytical plugin instances the analysis consists of. */
     type PluginInstanceType <: PluginInstance
