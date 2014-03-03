@@ -532,9 +532,12 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
               var f = evt.target.files[0];
               if (f) {
                 var r = new FileReader();
-                r.onload = function(e) {
-                  $('#ttl').val(e.target.result);
-                }
+          		r.onload = (function(theFile) {
+                  return function(e) {
+                    $('#ttl').val(e.target.result);
+                  };
+                })(f);
+                r.readAsText(f);
               } else {
                 alert("Failed to load file");
               }
