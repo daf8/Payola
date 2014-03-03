@@ -5,7 +5,6 @@ import cz.payola.model.ModelException
 import cz.payola.domain.entities._
 import cz.payola.web.shared.managers.ShareableEntityManager
 import cz.payola.common._
-import cz.payola.domain.rdf.Graph
 
 @remote
 @secured object  AnalysisRunner
@@ -22,9 +21,7 @@ import cz.payola.domain.rdf.Graph
         successCallback(evaluationId)
     }
 
-    @async def getEvaluationState(evaluationId: String, analysisId: String,
-        storeAnalysis: Boolean = false, persistInAnalysisStorage: Boolean = false, paginate: Boolean = false,
-        user: Option[User] = None)
+    @async def getEvaluationState(evaluationId: String, analysisId: String, paginate: Boolean = false, user: Option[User] = None)
         (successCallback: (EvaluationState => Unit))
         (failCallback: (Throwable => Unit)) {
 
@@ -34,36 +31,22 @@ import cz.payola.domain.rdf.Graph
         val resultResponse =
             try{
                 val response = Payola.model.analysisModel.getEvaluationState(evaluationId, user)
-                if(storeAnalysis) {
-                    response match {
-                        case r: EvaluationSuccess =>
-                            Payola.model.analysisResultStorageModel.saveGraph(r.outputGraph, analysisId, evaluationId, persistInAnalysisStorage, host, user)
+                response match {
+                    case r: EvaluationSuccess =>
+                            Payola.model.analysisResultStorageModel.saveGraph(r.outputGraph, analysisId, evaluationId, host, user)
                             EvaluationSuccess(Payola.model.analysisResultStorageModel.paginate(r.outputGraph),r.instanceErrors)
 
-                        case _ =>
-                            response
-                    }
-                } else {
-                    response
+                    case _ => response
                 }
             } catch {
                 // the evaluation was never started, the result is in resultStorage
                 case e: ModelException =>
-                    if(user.isDefined) {
+                    user.map{ u =>
                         val graph = Payola.model.analysisResultStorageModel.getGraph(evaluationId)
+                        EvaluationSuccess(if (paginate) { Payola.model.analysisResultStorageModel.paginate(graph) } else { graph }, List())
+                    }.getOrElse { throw e }
 
-                        if(paginate) {
-                            val paginated = Payola.model.analysisResultStorageModel.paginate(graph)
-                            EvaluationSuccess(paginated, List())
-                        } else {
-                            EvaluationSuccess(graph, List())
-                        }
-                    } else {
-                        throw e
-                    }
-                case p =>  {
-                    throw p
-                }
+                case e => throw e
             }
 
         successCallback(resultResponse)

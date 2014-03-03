@@ -28,7 +28,15 @@ trait AnalysisResultStorageModelComponent
                 try { op(p) } finally { p.close() }
             }
 
-            def saveGraph(graph: Graph, analysisId: String, evaluationId: String, persist: Boolean, host: String, user: Option[User] = None) {
+            def queryProperties(evaluationId: String, query: String) : scala.collection.Seq[String] = {
+
+                val graph = rdfStorage.executeSPARQLQuery(query, constructUri(evaluationId))
+                graph.edges
+                    .filter(_.uri == "http://www.w3.org/2005/sparql-results#value").map(_.destination.toString)
+                    .filterNot(_.startsWith("http://schema.org"))
+            }
+
+            def saveGraph(graph: Graph, analysisId: String, evaluationId: String, host: String, user: Option[User] = None) {
 
                 if(!graph.isInstanceOf[cz.payola.domain.rdf.Graph]) {
                     return
@@ -36,14 +44,9 @@ trait AnalysisResultStorageModelComponent
 
                 val domainGraph = graph.asInstanceOf[cz.payola.domain.rdf.Graph]
 
-                val inDB = analysisResultRepository.getResultsCount()
-                if(inDB >= maxStoredAnalyses) {
-                    analysisResultRepository.purge()      //TODO use removeGraph, this way the virtuoso might get filled up
-                }
-
                 //store control in DB
                 analysisResultRepository.storeResult(new AnalysisResult(
-                    analysisId, user, evaluationId, persist, graph.vertices.size,
+                    analysisId, user, evaluationId, graph.vertices.size,
                     new java.sql.Timestamp(System.currentTimeMillis)))
 
                 val uri = constructUri(evaluationId)
@@ -55,9 +58,6 @@ trait AnalysisResultStorageModelComponent
                     p.println(serializedGraph)
                 })
 
-                //store graph in virtuoso
-                //rdfStorage.storeGraph(uri, serializedGraph)
-                //rdfStorage.storeGraphFromFile(uri, new File("/tmp/"+evaluationId+".rdf"), RdfRepresentation.RdfXml)
                 rdfStorage.storeGraphAtURL(uri, "http://"+host+"/evaluation/"+evaluationId+".rdf")
 
                 tmpFile.delete()
@@ -66,8 +66,7 @@ trait AnalysisResultStorageModelComponent
             def getGraph(evaluationId: String): Graph = {
 
                 //Console.println("Trying to load graph")
-                val graph = rdfStorage.executeSPARQLQuery(
-                    "CONSTRUCT { ?s ?p ?o } WHERE {?s ?p ?o.}", constructUri(evaluationId))
+                val graph = rdfStorage.executeSPARQLQuery("CONSTRUCT { ?s ?p ?o } WHERE {?s ?p ?o.}", constructUri(evaluationId))
                 analysisResultRepository.updateTimestamp(evaluationId)
                 graph
             }

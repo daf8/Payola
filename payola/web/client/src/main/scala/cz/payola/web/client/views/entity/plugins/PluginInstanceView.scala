@@ -26,23 +26,21 @@ abstract class PluginInstanceView(
 
     private val additionalControls = new Div(controlViews, "controls")
 
-    private val footerViews = getFooterViews
-    private val footer = new Div(footerViews, "footer")
-
     protected val paramsWrapper = new Div(List(paramsDiv),"params-wrapper")
-    protected val alertDiv = new Div(heading ++ List(paramsWrapper, additionalControls, footer), "alert alert-info instance")
+
+    protected val panelHeading = new Div(heading, "panel-heading")
+    protected val panelBody = new Div(List(paramsWrapper, additionalControls),"panel-body")
+    protected val alertDiv = new Div(List(panelHeading, panelBody), "panel panel-info instance")
 
     private val clearSpan = new Span(List(), "clear")
 
     private val successors = new Div(List(clearSpan, alertDiv), "successors")
 
-    def getHeading: Seq[View] = List(new Heading(List(new Text(pluginInstance.plugin.name)), 3))
+    def getHeading: Seq[View] = List(new Text(pluginInstance.plugin.name))
 
     def getParameterViews: Seq[View]
 
     def getAdditionalControlsViews: Seq[View]
-
-    def getFooterViews: Seq[View]
 
     def getPlugin: Plugin = pluginInstance.plugin
 
@@ -106,12 +104,12 @@ abstract class PluginInstanceView(
 
     def setRunning() {
         clearStyle()
-        alertDiv.addCssClass("alert-warning")
+        alertDiv.addCssClass("panel-warning")
     }
 
     def setEvaluated() {
         clearStyle()
-        alertDiv.addCssClass("alert-success")
+        alertDiv.addCssClass("panel-success")
     }
 
     var hasError = false
@@ -119,7 +117,7 @@ abstract class PluginInstanceView(
     def setError(message: String) {
         if (!hasError) {
             clearStyle()
-            alertDiv.addCssClass("alert-danger")
+            alertDiv.addCssClass("panel-danger")
             hasError = true
             alertDiv.setAttribute("rel", "popover")
             alertDiv.setAttribute("data-content", message)
@@ -132,10 +130,10 @@ abstract class PluginInstanceView(
     def activatePopover(e: html.Element) {}
 
     def clearStyle() {
-        alertDiv.removeCssClass("alert-warning")
-        alertDiv.removeCssClass("alert-success")
-        alertDiv.removeCssClass("alert-info")
-        alertDiv.removeCssClass("alert-danger")
+        alertDiv.removeCssClass("panel-warning")
+        alertDiv.removeCssClass("panel-success")
+        alertDiv.removeCssClass("panel-info")
+        alertDiv.removeCssClass("panel-danger")
     }
 
     def blockHtmlElement: html.Element = successors.htmlElement

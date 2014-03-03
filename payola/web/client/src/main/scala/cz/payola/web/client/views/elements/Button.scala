@@ -5,12 +5,18 @@ import cz.payola.web.client.views._
 import cz.payola.web.client.View
 import cz.payola.web.client.views.bootstrap.Icon
 
+object Button {
+    def apply(caption: String, cssClass: String = "btn btn-default") : Button = {
+        new Button(new Text(caption), cssClass)
+    }
+}
+
 class Button(subView: View, cssClass: String = "", icon: Icon = null)
     extends ElementView[html.elements.Button]("button", if (icon == null) {
         List(subView)
     } else {
         List(icon, subView)
-    }, cssClass + " btn")
+    }, cssClass + " btn btn-default")
 {
     setAttribute("type", "button")
 

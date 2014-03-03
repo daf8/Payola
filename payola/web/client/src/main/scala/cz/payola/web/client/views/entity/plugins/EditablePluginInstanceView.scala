@@ -21,8 +21,6 @@ class EditablePluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
 
     val parameterValueChanged = new SimpleUnitEvent[ParameterValue]
 
-    def getFooterViews: Seq[View] = List()
-
     alertDiv.addCssClass("editable")
 
     def getAdditionalControlsViews: Seq[View] = {
@@ -53,7 +51,7 @@ class EditablePluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
                 case _ => new TextInput(param.id, v.toString, "Enter parameter value")
             }
 
-            val inputControl = new InputControl(parameterName(param), field, None)
+            val inputControl = new InputControl(parameterName(param), field, None, None)
             inputControl.delayedChanged += { _ => {
                 val value = param match {
                     case p: StringParameter if p.canContainUrl => prefixApplier.disapplyPrefix(field.value.toString)

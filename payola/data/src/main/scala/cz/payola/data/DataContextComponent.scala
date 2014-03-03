@@ -155,7 +155,7 @@ trait DataContextComponent
         /**
          * Returns all public entities.
          */
-        def getAllPublic: Seq[A]
+        def getAllPublic(forListing: Boolean = false): Seq[A]
 
         /**
          * Returns all public entities with the specified owner.
@@ -334,15 +334,11 @@ trait DataContextComponent
     {
         def storeResult(analysisDescription: AnalysisResult)
 
-        def getResultsCount(): Long
-
         def getResult(evaluationId: String, analysisId: String): Option[AnalysisResult]
 
         def deleteResult(evaluationId: String, analysisId: String)
 
         def updateTimestamp(evaluationId: String)
-
-        def purge()
     }
 
     /**

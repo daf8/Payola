@@ -18,6 +18,9 @@ import cz.payola.web.client.views.graph.datacube._
 import cz.payola.web.client.models.PrefixApplier
 import cz.payola.web.shared.AnalysisEvaluationResultsManager
 import s2js.compiler.javascript
+import cz.payola.web.client.views.map._
+import cz.payola.web.client.views.map.facets.GroupingMapFacet
+import cz.payola.web.client.views.d3.packLayout._
 
 class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with ComposedView
 {
@@ -67,9 +70,15 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
         new GravityTechnique(Some(prefixApplier)),
         new ColumnChartPluginView(Some(prefixApplier)),
         new GraphSigmaPluginView(Some(prefixApplier)),
-        new TimeHeatmap(Some(prefixApplier)), // [Jiri Helmich]
-        new Generic(Some(prefixApplier)),  // [Jiri Helmich]
-        new GoogleMap(Some(prefixApplier))
+        new TimeHeatmap(Some(prefixApplier)),
+        new Generic(Some(prefixApplier)),
+        new GoogleMapView(Some(prefixApplier)),
+        new GoogleHeatMapView(Some(prefixApplier)),
+        new ArcGisMapView(Some(prefixApplier)),
+        new PackLayout(Some(prefixApplier)),
+        new Sunburst(Some(prefixApplier)),
+        new ZoomableSunburst(Some(prefixApplier)),
+        new ZoomableTreemap(Some(prefixApplier))
     )
 
     /**
@@ -126,7 +135,7 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
      * Toolbar containing pluginChange, customization buttons
      */
     val toolbar = new Div(List(pluginChangeButton, customizationsButton, languagesButton), "btn-toolbar").setAttribute(
-        "style", "margin-bottom: 15px;")
+        "style", "margin-left: 0; margin-top: 15px; margin-bottom: 15px;")
 
     // Re-trigger all events when the corresponding events are triggered in the plugins.
     plugins.foreach { plugin =>
@@ -350,6 +359,7 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
                         update(g, currentCustomization, None)
                         currentPlugin.render(pluginSpace.htmlElement)
                         currentPlugin.renderControls(toolbar.htmlElement)
+                        analyticsHit(currentPlugin.name)
                     } { err => }
                 }else{
                     AnalysisEvaluationResultsManager.getCompleteAnalysisResultSerialized(evaluationId.get, currentPlugin.supportedDataFormat){ s =>
@@ -359,6 +369,7 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
                         currentPlugin.render(pluginSpace.htmlElement)
                         currentPlugin.renderControls(toolbar.htmlElement)
                         currentPlugin.drawGraph()
+                        analyticsHit(currentPlugin.name)
                     }{e => }
                 }
             } else {
@@ -368,6 +379,7 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
                     currentPlugin.render(pluginSpace.htmlElement)
                     currentPlugin.renderControls(toolbar.htmlElement)
                     currentPlugin.drawGraph()
+                    analyticsHit(currentPlugin.name)
                 }else{
                     AnalysisEvaluationResultsManager.getCompleteAnalysisResultSerialized(evaluationId.get, currentPlugin.supportedDataFormat){ s =>
                         currentGraph = None
@@ -376,6 +388,7 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
                         currentPlugin.render(pluginSpace.htmlElement)
                         currentPlugin.renderControls(toolbar.htmlElement)
                         currentPlugin.drawGraph()
+                        analyticsHit(currentPlugin.name)
                     }{e => }
                 }
             }
@@ -393,4 +406,7 @@ class PluginSwitchView(prefixApplier: PrefixApplier) extends GraphView with Comp
             visual.graphView
         case _ => None
     }
+
+    @javascript(""" ga('send', 'event', 'Visualization', 'Show', visualizationName); """)
+    def analyticsHit(visualizationName: String) {}
 }

@@ -6,24 +6,15 @@ import cz.payola.common.entities.plugins._
 import cz.payola.web.client.views.elements.lists._
 import cz.payola.web.client.models.PrefixApplier
 import cz.payola.common.entities.plugins.parameters.StringParameter
+import s2js.compiler.javascript
 
 class ReadOnlyPluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[PluginInstanceView] = List(),
     prefixApplier: PrefixApplier) extends PluginInstanceView(pluginInst, predecessors, prefixApplier)
 {
     def getAdditionalControlsViews: Seq[View] = List()
 
-    def getFooterViews: Seq[View] = {
-        if (pluginInstance.plugin.name == "SPARQL Endpoint") {
-            val graphUris = pluginInstance.getParameter("Graph URIs").get.toString
-            val endpointURL = pluginInstance.getParameter("Endpoint URL").get.toString
-            List(new Anchor(List(new Span(List(new Text("LODVis")), "label label-inverse")),
-                "http://lodvisualization.appspot.com/?graphUri=" + graphUris + "&endpointUri=" + endpointURL))
-        } else {
-            List()
-        }
-    }
-
     def getParameterViews: Seq[View] = {
+
         val listItems = filterParams(getPlugin.parameters).flatMap {
             param =>
                 pluginInstance.getParameter(param.name).map {
@@ -39,7 +30,11 @@ class ReadOnlyPluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
                         // If rendering string parameter that can contain url, try to find matching prefix
                         val item = param match {
                             case p : StringParameter if p.canContainUrl => new ListItem(List(strong, new Text(": " + prefixApplier.applyPrefix(v.toString))))
-                            case _ => new ListItem(List(strong, new Text(v.toString)))
+                            case p : StringParameter if p.isPassword => new ListItem(List(strong, new Text(": ***")))
+                            case p : StringParameter if p.isMultiline => {
+                                new ListItem(List(strong, new Text(": "))++v.toString.split("\n").toList.map{ t => new Paragraph(List(new Text(t))) })
+                            }
+                            case _ => new ListItem(List(strong, new Text(": "+v.toString)))
                         }
 
                         item.setAttribute("title", v.toString)
@@ -47,6 +42,6 @@ class ReadOnlyPluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
                 }
         }
 
-        List(new UnorderedList(listItems))
+        List(new UnorderedList(listItems, "list-unstyled readonly"))
     }
 }

@@ -50,7 +50,7 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
 
     protected var nameComponent = new InputControl(
         "Analysis name",
-        new TextInput("init-name", "", "Enter analysis name"), Some("span2")
+        new TextInput("init-name", "", "Enter analysis name"), Some("col-lg-3"), Some("col-lg-9")
     )
 
     def initialize() {
