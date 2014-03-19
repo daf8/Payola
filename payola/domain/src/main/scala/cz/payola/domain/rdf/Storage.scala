@@ -68,7 +68,7 @@ trait Storage
       * @return The resulting graph.
       */
     def executeSPARQLQuery(query: String): Graph
-
+    def executeSPARQLAskQuery(query: String): String
     def executeSPARQLQueryJena(query: String): com.hp.hpl.jena.query.Dataset
 
     /**
@@ -81,6 +81,12 @@ trait Storage
         val sparqlQuery = QueryFactory.create(query)
         sparqlQuery.addGraphURI(groupURI)
         executeSPARQLQuery(sparqlQuery.toString)
+    }
+
+    def executeSPARQLAskQuery(query: String, groupURI: String): String = {
+        val sparqlQuery = QueryFactory.create(query)
+        sparqlQuery.addGraphURI(groupURI)
+        executeSPARQLAskQuery(sparqlQuery.toString)
     }
 
     def executeSPARQLQueryJena(query: String, groupURI: String): com.hp.hpl.jena.query.Dataset = {

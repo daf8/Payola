@@ -10,7 +10,7 @@ import scala.collection.mutable.HashMap
 import cz.payola.domain.entities.analyses.evaluation._
 import cz.payola.domain.IDGenerator
 import cz.payola.common._
-import cz.payola.domain.entities.plugins.concrete.data.SparqlEndpointFetcher
+import cz.payola.domain.entities.plugins.concrete.data._
 import cz.payola.domain.entities.plugins.concrete.query._
 import scala.collection.mutable
 import cz.payola.common.entities.analyses.PluginInstanceBinding
@@ -21,6 +21,14 @@ import cz.payola.common.EvaluationInProgress
 import cz.payola.domain.entities.analyses.evaluation.Error
 import cz.payola.common.EvaluationSuccess
 import cz.payola.data.squeryl.entities.AnalysisResult
+import com.hp.hpl.jena.query._
+import cz.payola.domain.DomainException
+import cz.payola.common.EvaluationError
+import cz.payola.domain.entities.analyses.evaluation.Success
+import cz.payola.common.EvaluationInProgress
+import cz.payola.common.CheckSuccess
+import cz.payola.domain.entities.analyses.evaluation.Error
+import cz.payola.common.EvaluationSuccess
 
 trait AnalysisModelComponent extends EntityModelComponent
 {
@@ -30,6 +38,9 @@ trait AnalysisModelComponent extends EntityModelComponent
 
     lazy val analysisModel = new ShareableEntityModel(analysisRepository, classOf[Analysis])
     {
+        var checkResult = true
+        var checkDone = false
+
         def addBinding(analysisId: String, sourceId: String, targetId: String, inputIndex: Int) {
             getById(analysisId).map {
                 a =>
@@ -221,6 +232,45 @@ trait AnalysisModelComponent extends EntityModelComponent
                 .put(evaluationId, (user, analysis.evaluate(), (new java.util.Date).getTime))
 
             evaluationId
+        }
+
+        def checkDS(analysis: Analysis, oldEvaluationId: String, user: Option[User] = None) = {
+            var result = true
+            analysis.pluginInstances.foreach{p =>
+                if(p.plugin.originalClassName=="SparqlEndpointFetcher"){
+                    val sef = new SparqlEndpointFetcher()
+                    val partialResult = sef.askQuery(p)
+                    result = result && partialResult
+                }
+                if(p.plugin.originalClassName=="VirtuosoSecuredEndpointFetcher"){
+                    val vsef = new VirtuosoSecuredEndpointFetcher()
+                    val partialResult = vsef.askQuery(p)
+                    result = result && partialResult
+                }
+                if(p.plugin.originalClassName=="PayolaStorage"){
+                    val ps = new PayolaStorage()
+                    val partialResult = ps.askQuery(p)
+                    result = result && partialResult
+                }
+                if(p.plugin.originalClassName=="OpenDataCleanStorage"){
+                    val odcs = new OpenDataCleanStorage()
+                    val partialResult = odcs.askQuery(p)
+                    result = result && partialResult
+                }
+            }
+            checkResult=result
+            checkDone=true
+            val evaluationId = IDGenerator.newId
+            evaluationId
+        }
+
+        def getCheckState(checkId: String, user: Option[User] = None) : CheckState = {
+            var resultResponse: CheckState = new CheckInProgress
+            if (checkDone == true) {
+                resultResponse = new CheckSuccess(checkResult)
+                checkDone = false
+            }
+            resultResponse
         }
 
         private def getEvaluationTupleForID(id: String) = {

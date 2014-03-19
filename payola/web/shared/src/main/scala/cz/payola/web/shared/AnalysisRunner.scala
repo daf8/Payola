@@ -10,6 +10,7 @@ import cz.payola.common._
 @secured object  AnalysisRunner
     extends ShareableEntityManager[Analysis, cz.payola.common.entities.Analysis](Payola.model.analysisModel)
 {
+
     @async def runAnalysisById(id: String, oldEvaluationId: String,
         checkAnalysisStore: Boolean = false, user: Option[User] = None)
         (successCallback: (String => Unit))
@@ -49,6 +50,24 @@ import cz.payola.common._
                 case e => throw e
             }
 
+        successCallback(resultResponse)
+    }
+
+    @async def runCheck(id: String, oldCheckId: String,
+        checkAnalysisStore: Boolean = false, user: Option[User] = None)
+        (successCallback: (String => Unit))
+        (failCallback: (Throwable => Unit)) {
+
+        val analysis = getAnalysisById(user, id)
+        val checkId = Payola.model.analysisModel.checkDS(analysis, oldCheckId, user)
+
+        successCallback(checkId)
+    }
+
+    @async def getCheckState(checkId: String, analysisId: String, user: Option[User] = None)
+        (successCallback: (CheckState => Unit))
+        (failCallback: (Throwable => Unit)) {
+        val resultResponse: CheckState = Payola.model.analysisModel.getCheckState(checkId, user)
         successCallback(resultResponse)
     }
 

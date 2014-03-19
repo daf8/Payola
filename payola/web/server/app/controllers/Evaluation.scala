@@ -25,7 +25,8 @@ object Evaluation extends PayolaController with Secured
 
     def rdf(evaluationId: String) = {
         maybeAuthenticated { u: Option[User] =>
-            Ok(scala.io.Source.fromFile("/opt/www/virtuoso/evaluation/"+evaluationId+".rdf", "UTF-8").map(_.toString).mkString).as("application/rdf+xml").withHeaders {
+            //Ok(scala.io.Source.fromFile("/opt/www/virtuoso/evaluation/"+evaluationId+".rdf", "UTF-8").map(_.toString).mkString).as("application/rdf+xml").withHeaders {
+            Ok(scala.io.Source.fromFile("D:\\skola\\ing\\DIP\\virtuoso-opensource\\evaluation\\"+evaluationId+".rdf", "UTF-8").map(_.toString).mkString).as("application/rdf+xml").withHeaders {
                 CONTENT_DISPOSITION -> "attachment; filename=%s.%s".format(evaluationId, "rdf")
             }
         }

@@ -28,6 +28,7 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
         this("Virtuoso Secured SPARQL Endpoint", 0, List(
             new StringParameter(VirtuosoSecuredEndpointFetcher.endpointURLParameter, "", false, false, false, true),
             new StringParameter(VirtuosoSecuredEndpointFetcher.graphURIsParameter, "", true, false, false, true),
+            new StringParameter(SparqlEndpointFetcher.askQueryParameter, "", true, false, false, true),
             new StringParameter(VirtuosoSecuredEndpointFetcher.usernameParameter, "", false),
             new StringParameter(VirtuosoSecuredEndpointFetcher.passwordParameter, "", false, false, true)
         ), IDGenerator.newId)
@@ -39,6 +40,10 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
 
     def getGraphURIs(instance: PluginInstance): Option[Seq[String]] = {
         instance.getStringParameter(SparqlEndpointFetcher.graphURIsParameter).map(_.split("\\s+").filter(_ != "").toList)
+    }
+
+    def getAsk(instance: PluginInstance): Option[String] = {
+        instance.getStringParameter(SparqlEndpointFetcher.askQueryParameter)
     }
 
     def getUsername(instance: PluginInstance): Option[String] = {
@@ -79,6 +84,15 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
                 result.getOrElse(JenaGraph.empty)
         }
     }
+
+    def askQuery(instance: PluginInstance): Boolean = {
+        usingDefined(getEndpointURL(instance), getAsk(instance), getUsername(instance), getPassword(instance)) {
+            (endpointURL, query, username, password) =>
+            val sparqlQuery = QueryFactory.create(query)
+            val result: String = new VirtuosoSecuredEndpoint(endpointURL, username, password).askQuery(sparqlQuery.toString)
+            result.toBoolean
+        }
+    }
 }
 
 object VirtuosoSecuredEndpointFetcher
@@ -86,6 +100,8 @@ object VirtuosoSecuredEndpointFetcher
     val endpointURLParameter = "Endpoint URL"
 
     val graphURIsParameter = "Graph URIs"
+
+    val askQueryParameter = "ASK query"
 
     val usernameParameter = "Username"
 

@@ -72,7 +72,7 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
                                 lockAnalysisAndLoadPlugins({
                                     () =>
                                         val view = new
-                                                AnalysisEditorView(analysis, Some(nameComponent.field.value), None, None, None,
+                                                AnalysisEditorView(analysis, Some(nameComponent.field.value), None, None,
                                                     "Create analysis", prefixPresenter.prefixApplier)
                                         view.visualizer.pluginInstanceRendered += {
                                             e => instancesMap.put(e.target.pluginInstance.id, e.target)
@@ -478,22 +478,6 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
         }
     }
 
-    protected def bindAskChanged(view: AnalysisEditorView) {
-        view.ask.delayedChanged += {
-            _ =>
-                view.ask.isActive = true
-                AnalysisBuilderData.setAnalysisAsk(analysisId, view.ask.field.value) {
-                    _ =>
-                        view.ask.isActive = false
-                        view.ask.setOk()
-                } {
-                    _ =>
-                        view.ask.isActive = false
-                        view.ask.setError("Invalid ASK query.")
-                }
-        }
-    }
-
     protected def bindTtlChanged(view: AnalysisEditorView) {
         view.ttl.delayedChanged += {
             _ =>
@@ -634,7 +618,6 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
 
     protected def bindMenuEvents(view: AnalysisEditorView, analysis: Analysis) {
         bindDescriptionChanged(view)
-        bindAskChanged(view)
         bindTtlChanged(view)
         bindTtlFileChanged(view)
         bindTtlFileTtlChanged(view)

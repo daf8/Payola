@@ -409,6 +409,8 @@ trait SchemaComponent
             val COLUMN_TYPE_DESCRIPTION = "text"
             val COLUMN_TYPE_ASK = "text"
             val COLUMN_TYPE_TTL = "text"
+            val COLUMN_TYPE_CHECKED = "boolean"
+            val COLUMN_TYPE_LAST_CHECK = "bigint"
             val COLUMN_TYPE_URIS = "text"
             val COLUMN_TYPE_URI = "varchar(256)"
             val COLUMN_TYPE_VALUE = "text"
@@ -531,6 +533,7 @@ trait SchemaComponent
                     ds.ownerId is (dbType(COLUMN_TYPE_ID)),
                     ds._desc is (dbType(COLUMN_TYPE_DESCRIPTION)),
                     ds.description is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    ds.ask is (dbType(COLUMN_TYPE_ASK)),
                     columns(ds.name, ds.ownerId) are (unique)
                 ))
 
@@ -550,8 +553,9 @@ trait SchemaComponent
                     analysis.defaultCustomizationId is (dbType(COLUMN_TYPE_ID)),
                     analysis._desc is (dbType(COLUMN_TYPE_DESCRIPTION)),
                     analysis.description is (dbType(COLUMN_TYPE_DESCRIPTION)),
-                    analysis.ask is (dbType(COLUMN_TYPE_ASK)),
                     analysis.ttl is (dbType(COLUMN_TYPE_TTL)),
+                    analysis.checked is (dbType(COLUMN_TYPE_CHECKED)),
+                    analysis.lastCheck is (dbType(COLUMN_TYPE_LAST_CHECK)),
                     analysis.token is (dbType(COLUMN_TYPE_TOKEN)),
                     columns(analysis.name, analysis.ownerId) are (unique)
                 ))

@@ -15,7 +15,8 @@ sealed class SparqlEndpointFetcher(name: String, inputCount: Int, parameters: im
     def this() = {
         this("SPARQL Endpoint", 0, List(
             new StringParameter(SparqlEndpointFetcher.endpointURLParameter, "", false, false, false, true),
-            new StringParameter(SparqlEndpointFetcher.graphURIsParameter, "", true, false, false, true)
+            new StringParameter(SparqlEndpointFetcher.graphURIsParameter, "", true, false, false, true),
+            new StringParameter(SparqlEndpointFetcher.askQueryParameter, "", true, false, false, true)
         ), IDGenerator.newId)
     }
 
@@ -25,6 +26,10 @@ sealed class SparqlEndpointFetcher(name: String, inputCount: Int, parameters: im
 
     def getGraphURIs(instance: PluginInstance): Option[Seq[String]] = {
         instance.getStringParameter(SparqlEndpointFetcher.graphURIsParameter).map(_.split("\\s+").filter(_ != "").toList)
+    }
+
+    def getAsk(instance: PluginInstance): Option[String] = {
+        instance.getStringParameter(SparqlEndpointFetcher.askQueryParameter)
     }
 
     def executeQuery(instance: PluginInstance, query: String): Graph = {
@@ -55,6 +60,14 @@ sealed class SparqlEndpointFetcher(name: String, inputCount: Int, parameters: im
             result.getOrElse(JenaGraph.empty)
         }
     }
+
+    def askQuery(instance: PluginInstance): Boolean = {
+        usingDefined(getEndpointURL(instance), getAsk(instance)) { (endpointURL, query) =>
+            val sparqlQuery = QueryFactory.create(query)
+            val result: String = new SparqlEndpoint(endpointURL).askQuery(sparqlQuery.toString)
+            result.toBoolean
+        }
+    }
 }
 
 object SparqlEndpointFetcher
@@ -62,4 +75,6 @@ object SparqlEndpointFetcher
     val endpointURLParameter = "Endpoint URL"
 
     val graphURIsParameter = "Graph URIs"
+
+    val askQueryParameter = "ASK query"
 }

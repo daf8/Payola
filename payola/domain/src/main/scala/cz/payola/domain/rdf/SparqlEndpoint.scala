@@ -27,6 +27,22 @@ class SparqlEndpoint(val endpointURL: String)
         }
     }
 
+    private def _askQuery[B](query: String)(inflector: ((String) => B)): B = {
+        QueryFactory.create(query).getQueryType match {
+            case Query.QueryTypeAsk => {
+                inflector(new Downloader(queryUrl(query), "text/plain").result)
+            }
+            case _ => throw new DomainException(
+                "Unsupported query type. The only supported query types is ASK.")
+        }
+    }
+
+    def askQuery(query: String): String = {
+        _askQuery[String](query){ (data) =>
+            data
+        }
+    }
+
     def executeQueryJena(query: String): com.hp.hpl.jena.query.Dataset = {
         _executeQuery[com.hp.hpl.jena.query.Dataset](query){ (representation, data) =>
             Graph.rdf2JenaDataset(representation, data)

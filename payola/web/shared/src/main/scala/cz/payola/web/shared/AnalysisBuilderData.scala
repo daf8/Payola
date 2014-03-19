@@ -4,6 +4,7 @@ import cz.payola.common.entities._
 import s2js.compiler._
 import cz.payola.domain.entities.User
 import cz.payola.common.entities.plugins._
+import java.util.Date
 
 @secured
 @remote object AnalysisBuilderData
@@ -64,25 +65,26 @@ import cz.payola.common.entities.plugins._
         successCallback(true)
     }
 
-    @async def setAnalysisAsk(id: String, ask: String, user: User = null)
-        (successCallback: (Boolean => Unit))
-        (failCallback: (Throwable => Unit)) {
+    @async def setAnalysisTtl(id: String, ttl: String, user: User = null)
+    (successCallback: (Boolean => Unit))
+    (failCallback: (Throwable => Unit)) {
         val analysis = Payola.model.analysisModel.getById(id)
         analysis.map {
             a =>
-                a.ask = ask
+                a.ttl = ttl
                 Payola.model.analysisModel.persist(a)
         }
         successCallback(true)
     }
 
-    @async def setAnalysisTtl(id: String, ttl: String, user: User = null)
+    @async def setAnalysisChecked(id: String, checked: Boolean, user: User = null)
         (successCallback: (Boolean => Unit))
         (failCallback: (Throwable => Unit)) {
         val analysis = Payola.model.analysisModel.getById(id)
         analysis.map {
             a =>
-                a.ttl = ttl
+                a.checked = checked
+                a.lastCheck = System.currentTimeMillis()
                 Payola.model.analysisModel.persist(a)
         }
         successCallback(true)

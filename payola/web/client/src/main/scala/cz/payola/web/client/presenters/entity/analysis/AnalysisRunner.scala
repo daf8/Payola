@@ -34,6 +34,7 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
     var graphPresenter: GraphPresenter = null
     var successEventHandler: (EvaluationSuccessEventArgs => Unit) = null
     var evaluationId = ""
+    var checkId = ""
     var storeHandler: Boolean = false
     var intervalHandler: Option[Int] = None
     val prefixPresenter = new PrefixPresenter
@@ -78,17 +79,46 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
         }
     }
 
+    @javascript(
+        """
+            var myDate = new Date(d);
+            $('#checkInfoLastCheck').append(myDate.toLocaleString());
+        """)
+    protected def showLastCheck(d: Long) {    }
+
+    @javascript(
+        """
+            $('#checkInfoLastCheck').html("");
+        """)
+    protected def clearLastCheck() {    }
+
     private def createViewAndInit(analysis: Analysis): AnalysisRunnerView = {
         val view = new AnalysisRunnerView(analysis, prefixPresenter.prefixApplier)
         view.render(parentElement)
         view.tabs.hideTab(1)
-
+        if (analysis.lastCheck==0){
+            view.overviewView.controls.checkInfo.text = "Data sources haven't been checked"
+            view.overviewView.controls.checkIconTrue.hide()
+        }else{
+            if(analysis.checked){
+                view.overviewView.controls.checkInfo.text = "Data sources checked successfully, last check: "
+                view.overviewView.controls.checkIconFalse.hide()
+            } else {
+                view.overviewView.controls.checkInfo.text = "Data sources checked negatively, last check: "
+                view.overviewView.controls.checkIconTrue.hide()
+            }
+            showLastCheck(analysis.lastCheck)
+        }
         successEventHandler = getSuccessEventHandler(analysis, view)
         analysisEvaluationSuccess = new UnitEvent[Analysis, EvaluationSuccessEventArgs]
         analysisEvaluationSuccess += successEventHandler
 
         view.overviewView.controls.runBtn.mouseClicked += {
             evt => runButtonClickHandler(view, analysis)
+        }
+
+        view.overviewView.controls.checkBtn.mouseClicked += {
+            evt => checkButtonClickHandler(view, analysis)
         }
 
         view
@@ -169,6 +199,22 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
         false
     }
 
+    private def checkButtonClickHandler(view: AnalysisRunnerView, analysis: Analysis) = {
+            clearLastCheck()
+            view.overviewView.controls.checkBtn.setIsEnabled(false)
+            view.overviewView.controls.checkInfoBar.removeCssClass("none")
+            view.overviewView.controls.checkInfo.text = "Checking sources with ask queries"
+            view.overviewView.controls.checkIconFalse.hide()
+            view.overviewView.controls.checkIconTrue.hide()
+            AnalysisRunner.runCheck(analysisId, checkId, true) { id =>
+                checkId = id
+                checkPolling(view, analysis)
+            } {
+                error => fatalErrorHandler(error)
+            }
+        false
+    }
+
     private def uiAdaptAnalysisRunning(view: AnalysisRunnerView, initUI: (Analysis) => Unit, analysis: Analysis) {
         view.overviewView.controls.runBtn.setIsEnabled(false)
         view.overviewView.controls.runBtnCaption.text = "Running Analysis..."
@@ -194,6 +240,12 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
     private def schedulePolling(view: AnalysisRunnerView, analysis: Analysis) = {
         window.setTimeout(() => {
             pollingHandler(view, analysis)
+        }, pollingPeriod)
+    }
+
+    private def checkPolling(view: AnalysisRunnerView, analysis: Analysis) = {
+        window.setTimeout(() => {
+            checkPollingHandler(view, analysis)
         }, pollingPeriod)
     }
 
@@ -241,6 +293,22 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
         }
     }
 
+    private def checkPollingHandler(view: AnalysisRunnerView, analysis: Analysis) {
+        AnalysisRunner.getCheckState(checkId, analysis.id) {
+            state =>
+                state match {
+                    case s: CheckError => checkErrorHandler(s, view, analysis)
+                    case s: CheckSuccess => checkSuccessHandler(s, analysis, view)
+                }
+
+                if (state.isInstanceOf[CheckInProgress]) {
+                    checkPolling(view, analysis)
+                }
+        } {
+            error => fatalErrorHandler(error)
+        }
+    }
+
     private def evaluationErrorHandler(error: EvaluationError, view: AnalysisRunnerView, analysis: Analysis) {
         view.overviewView.controls.progressBar.setStyleToFailure()
         view.overviewView.controls.progressBar.setActive(false)
@@ -269,6 +337,15 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
         AlertModal.display("Time out", "The analysis evaluation has timed out.")
 
         initReRun(view, analysis)
+    }
+
+    private def checkErrorHandler(error: CheckError, view: AnalysisRunnerView, analysis: Analysis) {
+        view.overviewView.controls.checkBtn.setIsEnabled(true)
+        view.overviewView.controls.checkInfo.text = ""
+        error.instanceErrors.foreach { err =>
+            view.overviewView.analysisVisualizer.setInstanceError(err._1.id, err._2)
+        }
+        AlertModal.display("Data source check error", error.error)
     }
 
     private def initReRun(view: AnalysisRunnerView, analysis: Analysis) {
@@ -311,6 +388,22 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
         view.overviewView.controls.progressBar.setActive(false)
 
         analysisEvaluationSuccess.trigger(new EvaluationSuccessEventArgs(analysis, success.outputGraph))
+    }
+
+    private def checkSuccessHandler(success: CheckSuccess, analysis: Analysis, view: AnalysisRunnerView) {
+        view.overviewView.controls.checkBtn.setIsEnabled(true)
+        if(success.result){
+            view.overviewView.controls.checkInfo.text = "Data sources are valid with ask queries"
+            view.overviewView.controls.checkIconTrue.show()
+        } else {
+            view.overviewView.controls.checkInfo.text = "Data sources aren't valid with ask queries"
+            view.overviewView.controls.checkIconFalse.show()
+        }
+        AnalysisBuilderData.setAnalysisChecked(analysisId, success.result) {
+            _ =>
+        } {
+            _ =>
+        }
     }
 
     private def renderEvaluationProgress(progress: EvaluationInProgress, view: AnalysisRunnerView) {

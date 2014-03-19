@@ -27,7 +27,7 @@ class AnalysisEditor(parentElementId: String, analysisIdParam: String)
             instanceViewFactory = new PluginInstanceViewFactory(prefixPresenter.prefixApplier)
 
             lockAnalysisAndLoadPlugins({ () =>
-                val view = new AnalysisEditorView(analysis, None, None, None, None, "Edit analysis", prefixPresenter.prefixApplier)
+                val view = new AnalysisEditorView(analysis, None, None, None, "Edit analysis", prefixPresenter.prefixApplier)
                 view.visualizer.pluginInstanceRendered += { e => instancesMap.put(e.target.pluginInstance.id, e.target)}
                 view.render(parentElement)
                 bindParameterChangedEvent(view.visualizer)

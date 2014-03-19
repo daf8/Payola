@@ -5,6 +5,7 @@ import cz.payola.domain.entities._
 import cz.payola.domain.entities.plugins.concrete.DataFetcher
 import cz.payola.domain.rdf.Graph
 import cz.payola.common.rdf.Edge
+import cz.payola.common.entities.AskedEntity
 
 object DataSource
 {
@@ -34,6 +35,7 @@ class DataSource(protected var _name: String, protected var _owner: Option[User]
     extends PluginInstance(dataFetcher, parameterValues)
     with OptionallyOwnedEntity
     with NamedEntity
+    with AskedEntity
     with cz.payola.common.entities.plugins.DataSource
 {
     /**

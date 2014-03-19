@@ -27,4 +27,21 @@ class VirtuosoSecuredEndpoint(val endpointURL: String, val username: String, val
                 "Unsupported query type. The only supported query types are CONSTRUCT and SELECT.")
         }
     }
+
+    private def _askQuery[B](query: String)(inflector: ((String) => B)): B = {
+        val queryUrl = endpointURL + "?query=" + java.net.URLEncoder.encode(query, "UTF-8")
+        QueryFactory.create(query).getQueryType match {
+            case Query.QueryTypeAsk => {
+                inflector(new Downloader(queryUrl, "text/plain", credentials = Some((username, password))).result)
+            }
+            case _ => throw new DomainException(
+                "Unsupported query type. The only supported query types is ASK.")
+        }
+    }
+
+    def askQuery(query: String): String = {
+        _askQuery[String](query){ (data) =>
+            data
+        }
+    }
 }

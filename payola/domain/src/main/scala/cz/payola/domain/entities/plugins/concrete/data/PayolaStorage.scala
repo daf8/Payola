@@ -14,9 +14,14 @@ sealed class PayolaStorage(name: String, inputCount: Int, parameters: immutable.
 {
     def this() = {
         this(PayolaStorage.pluginName, 0, List(
-            new StringParameter(PayolaStorage.groupURIParameter, "", false, false, false, true)
+            new StringParameter(PayolaStorage.groupURIParameter, "", false, false, false, true),
+            new StringParameter(PayolaStorage.askQueryParameter, "", true, false, false, true)
         ), IDGenerator.newId)(null)
         isPublic = false
+    }
+
+    def getAsk(instance: PluginInstance): Option[String] = {
+        instance.getStringParameter(PayolaStorage.askQueryParameter)
     }
 
     def executeQuery(instance: PluginInstance, query: String): Graph = {
@@ -33,6 +38,22 @@ sealed class PayolaStorage(name: String, inputCount: Int, parameters: immutable.
             storageComponent.rdfStorage.executeSPARQLQuery(sparqlQuery.toString, groupURI)
         }
     }
+
+    def askQuery(instance: PluginInstance): Boolean = {
+        usingDefined(instance.getStringParameter(PayolaStorage.groupURIParameter), instance.getStringParameter(PayolaStorage.askQueryParameter)) {
+            (groupURI, query) =>
+            if (storageComponent == null) {
+                throw new PluginException("The storage component is null. " +
+                    "The plugin has to be instantiated with non-null storage component.")
+            }
+
+            // Don't allow the users to specify other graph URIs.
+            val sparqlQuery = QueryFactory.create(query)
+            sparqlQuery.getGraphURIs.clear()
+
+            storageComponent.rdfStorage.executeSPARQLAskQuery(sparqlQuery.toString, groupURI).toBoolean
+        }
+    }
 }
 
 object PayolaStorage
@@ -40,4 +61,6 @@ object PayolaStorage
     val pluginName = "Payola Private Storage"
 
     val groupURIParameter = "Group URI"
+
+    val askQueryParameter = "ASK query"
 }

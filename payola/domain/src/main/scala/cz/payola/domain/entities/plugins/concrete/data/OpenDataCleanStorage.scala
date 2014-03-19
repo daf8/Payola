@@ -15,7 +15,8 @@ sealed class OpenDataCleanStorage(name: String, inputCount: Int, parameters: imm
     def this() = {
         this("Open Data Clean Storage", 0, List(
             new StringParameter(OpenDataCleanStorage.serviceURLParameter, "", false, false, false, true),
-            new StringParameter(OpenDataCleanStorage.endpointURLParameter, "", false, false, false, true)
+            new StringParameter(OpenDataCleanStorage.endpointURLParameter, "", false, false, false, true),
+            new StringParameter(SparqlEndpointFetcher.askQueryParameter, "", true, false, false, true)
         ), IDGenerator.newId)
     }
 
@@ -27,9 +28,19 @@ sealed class OpenDataCleanStorage(name: String, inputCount: Int, parameters: imm
         instance.getStringParameter(OpenDataCleanStorage.endpointURLParameter)
     }
 
+    def getAsk(instance: PluginInstance): Option[String] = {
+        instance.getStringParameter(SparqlEndpointFetcher.askQueryParameter)
+    }
+
     def executeQuery(instance: PluginInstance, query: String): Graph = {
         usingDefined(getEndpointURLParameter(instance)) { endpointURL =>
             new SparqlEndpoint(endpointURL).executeQuery(query)
+        }
+    }
+
+    def askQuery(instance: PluginInstance): Boolean = {
+        usingDefined(getEndpointURLParameter(instance), getAsk(instance)) { (endpointURL, query) =>
+            new SparqlEndpoint(endpointURL).askQuery(query).toBoolean
         }
     }
 
@@ -47,4 +58,6 @@ object OpenDataCleanStorage
     val serviceURLParameter = "Output Webservice URL"
 
     val endpointURLParameter = "Sparql Endpoint URL"
+
+    val askQueryParameter = "ASK query"
 }
