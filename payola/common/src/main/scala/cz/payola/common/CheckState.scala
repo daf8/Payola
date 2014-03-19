@@ -9,10 +9,6 @@ import cz.payola.common.entities.plugins.PluginInstance
  */
 abstract class CheckState
 
-//case class CheckInProgress(value: Double, evaluatedInstances: immutable.Seq[PluginInstance],
-//    runningInstances: Seq[(PluginInstance, Double)],
-//    errors: Seq[(PluginInstance, String)]) extends CheckState
-
 
 case class CheckError(error: String, instanceErrors: Seq[(PluginInstance, String)]) extends CheckState
 

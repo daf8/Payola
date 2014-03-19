@@ -16,7 +16,7 @@ sealed class OpenDataCleanStorage(name: String, inputCount: Int, parameters: imm
         this("Open Data Clean Storage", 0, List(
             new StringParameter(OpenDataCleanStorage.serviceURLParameter, "", false, false, false, true),
             new StringParameter(OpenDataCleanStorage.endpointURLParameter, "", false, false, false, true),
-            new StringParameter(SparqlEndpointFetcher.askQueryParameter, "", true, false, false, true)
+            new StringParameter(OpenDataCleanStorage.askQueryParameter, "", true, false, false, true)
         ), IDGenerator.newId)
     }
 
@@ -29,7 +29,7 @@ sealed class OpenDataCleanStorage(name: String, inputCount: Int, parameters: imm
     }
 
     def getAsk(instance: PluginInstance): Option[String] = {
-        instance.getStringParameter(SparqlEndpointFetcher.askQueryParameter)
+        instance.getStringParameter(OpenDataCleanStorage.askQueryParameter)
     }
 
     def executeQuery(instance: PluginInstance, query: String): Graph = {

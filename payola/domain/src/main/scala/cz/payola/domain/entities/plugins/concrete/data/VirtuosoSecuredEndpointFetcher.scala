@@ -28,7 +28,7 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
         this("Virtuoso Secured SPARQL Endpoint", 0, List(
             new StringParameter(VirtuosoSecuredEndpointFetcher.endpointURLParameter, "", false, false, false, true),
             new StringParameter(VirtuosoSecuredEndpointFetcher.graphURIsParameter, "", true, false, false, true),
-            new StringParameter(SparqlEndpointFetcher.askQueryParameter, "", true, false, false, true),
+            new StringParameter(VirtuosoSecuredEndpointFetcher.askQueryParameter, "", true, false, false, true),
             new StringParameter(VirtuosoSecuredEndpointFetcher.usernameParameter, "", false),
             new StringParameter(VirtuosoSecuredEndpointFetcher.passwordParameter, "", false, false, true)
         ), IDGenerator.newId)
@@ -43,7 +43,7 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
     }
 
     def getAsk(instance: PluginInstance): Option[String] = {
-        instance.getStringParameter(SparqlEndpointFetcher.askQueryParameter)
+        instance.getStringParameter(VirtuosoSecuredEndpointFetcher.askQueryParameter)
     }
 
     def getUsername(instance: PluginInstance): Option[String] = {
