@@ -252,11 +252,6 @@ trait AnalysisModelComponent extends EntityModelComponent
                     val partialResult = ps.askQuery(p)
                     result = result && partialResult
                 }
-                if(p.plugin.originalClassName=="OpenDataCleanStorage"){
-                    val odcs = new OpenDataCleanStorage()
-                    val partialResult = odcs.askQuery(p)
-                    result = result && partialResult
-                }
             }
             checkResult=result
             checkDone=true
