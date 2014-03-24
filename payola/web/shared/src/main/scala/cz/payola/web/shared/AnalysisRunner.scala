@@ -57,10 +57,8 @@ import cz.payola.common._
         checkAnalysisStore: Boolean = false, user: Option[User] = None)
         (successCallback: (String => Unit))
         (failCallback: (Throwable => Unit)) {
-
         val analysis = getAnalysisById(user, id)
         val checkId = Payola.model.analysisModel.checkDS(analysis, oldCheckId, user)
-
         successCallback(checkId)
     }
 

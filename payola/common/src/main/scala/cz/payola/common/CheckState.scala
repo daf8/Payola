@@ -10,7 +10,7 @@ import cz.payola.common.entities.plugins.PluginInstance
 abstract class CheckState
 
 
-case class CheckError(error: String, instanceErrors: Seq[(PluginInstance, String)]) extends CheckState
+case class CheckError(error: String) extends CheckState
 
 
 case class CheckSuccess(result: Boolean = false) extends CheckState

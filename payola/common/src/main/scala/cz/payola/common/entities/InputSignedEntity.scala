@@ -5,7 +5,7 @@ import cz.payola.common.Entity
 /**
  * A ASK query described generic entity.
  */
-trait AskedEntity extends Entity
+trait InputSignedEntity extends Entity
 {
     self: Entity =>
 

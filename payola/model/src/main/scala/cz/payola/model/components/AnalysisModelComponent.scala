@@ -29,6 +29,7 @@ import cz.payola.common.EvaluationInProgress
 import cz.payola.common.CheckSuccess
 import cz.payola.domain.entities.analyses.evaluation.Error
 import cz.payola.common.EvaluationSuccess
+import cz.payola.domain.entities.plugins.concrete.DataFetcher
 
 trait AnalysisModelComponent extends EntityModelComponent
 {
@@ -40,6 +41,7 @@ trait AnalysisModelComponent extends EntityModelComponent
     {
         var checkResult = true
         var checkDone = false
+        var checkError = ""
 
         def addBinding(analysisId: String, sourceId: String, targetId: String, inputIndex: Int) {
             getById(analysisId).map {
@@ -235,37 +237,45 @@ trait AnalysisModelComponent extends EntityModelComponent
         }
 
         def checkDS(analysis: Analysis, oldEvaluationId: String, user: Option[User] = None) = {
-            var result = true
-            analysis.pluginInstances.foreach{p =>
-                if(p.plugin.originalClassName=="SparqlEndpointFetcher"){
-                    val sef = new SparqlEndpointFetcher()
-                    val partialResult = sef.askQuery(p)
-                    result = result && partialResult
-                }
-                if(p.plugin.originalClassName=="VirtuosoSecuredEndpointFetcher"){
-                    val vsef = new VirtuosoSecuredEndpointFetcher()
-                    val partialResult = vsef.askQuery(p)
-                    result = result && partialResult
-                }
-                if(p.plugin.originalClassName=="PayolaStorage"){
-                    val ps = new PayolaStorage()
-                    val partialResult = ps.askQuery(p)
-                    result = result && partialResult
-                }
+            if(!analysis.pluginInstances.isEmpty){
+                try{
+                checkResult=analysis.pluginInstances.map { p =>
+                    p.plugin match {
+                        case x: DataFetcher => {
+
+                                x.askQuery(p)
+
+                        }
+                        case _ => {
+                            true
+                        }
+                    }
+                }.reduceLeft((a,b) => a && b)
+                } catch {
+                    case e: QueryParseException => checkError = "ASK query is not valid ASK SPARQL query."
+                    case e => throw e
+                }//try catch query parse exception
+                checkDone=true
+            } else {
+                checkError = "Analysis doesn't contain any plugins."
             }
-            checkResult=result
-            checkDone=true
             val evaluationId = IDGenerator.newId
             evaluationId
         }
 
         def getCheckState(checkId: String, user: Option[User] = None) : CheckState = {
-            var resultResponse: CheckState = new CheckInProgress
-            if (checkDone == true) {
-                resultResponse = new CheckSuccess(checkResult)
-                checkDone = false
+            if(checkError.length()>0){
+                val error = checkError
+                checkError = ""
+                new CheckError(error)
+            } else {
+                if(checkDone){
+                    checkDone = false
+                    new CheckSuccess(checkResult)
+                } else {
+                    new CheckInProgress
+                }
             }
-            resultResponse
         }
 
         private def getEvaluationTupleForID(id: String) = {

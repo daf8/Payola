@@ -342,9 +342,6 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
     private def checkErrorHandler(error: CheckError, view: AnalysisRunnerView, analysis: Analysis) {
         view.overviewView.controls.checkBtn.setIsEnabled(true)
         view.overviewView.controls.checkInfo.text = ""
-        error.instanceErrors.foreach { err =>
-            view.overviewView.analysisVisualizer.setInstanceError(err._1.id, err._2)
-        }
         AlertModal.display("Data source check error", error.error)
     }
 

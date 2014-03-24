@@ -50,6 +50,8 @@ abstract class DataFetcher(name: String, inputCount: Int, parameters: immutable.
       */
     def executeQuery(instance: PluginInstance, query: String): Graph
 
+    def askQuery(instance: PluginInstance): Boolean
+
     /**
       * Returns the first available triple.
       * @param instance The corresponding instance.
