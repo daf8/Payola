@@ -239,22 +239,20 @@ trait AnalysisModelComponent extends EntityModelComponent
         def checkDS(analysis: Analysis, oldEvaluationId: String, user: Option[User] = None) = {
             if(!analysis.pluginInstances.isEmpty){
                 try{
-                checkResult=analysis.pluginInstances.map { p =>
-                    p.plugin match {
-                        case x: DataFetcher => {
-
+                    checkResult=analysis.pluginInstances.map { p =>
+                        p.plugin match {
+                            case x: DataFetcher => {
                                 x.askQuery(p)
-
+                            }
+                            case _ => {
+                                true
+                            }
                         }
-                        case _ => {
-                            true
-                        }
-                    }
-                }.reduceLeft((a,b) => a && b)
+                    }.reduceLeft((a,b) => a && b)
                 } catch {
                     case e: QueryParseException => checkError = "ASK query is not valid ASK SPARQL query."
                     case e => throw e
-                }//try catch query parse exception
+                }
                 checkDone=true
             } else {
                 checkError = "Analysis doesn't contain any plugins."
