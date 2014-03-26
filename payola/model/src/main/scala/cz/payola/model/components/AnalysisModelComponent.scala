@@ -26,10 +26,12 @@ import cz.payola.domain.DomainException
 import cz.payola.common.EvaluationError
 import cz.payola.domain.entities.analyses.evaluation.Success
 import cz.payola.common.EvaluationInProgress
-import cz.payola.common.CheckSuccess
 import cz.payola.domain.entities.analyses.evaluation.Error
 import cz.payola.common.EvaluationSuccess
 import cz.payola.domain.entities.plugins.concrete.DataFetcher
+import java.net.ConnectException
+import cz.payola.common.CheckError
+import cz.payola.common.CheckSuccess
 
 trait AnalysisModelComponent extends EntityModelComponent
 {
@@ -39,9 +41,9 @@ trait AnalysisModelComponent extends EntityModelComponent
 
     lazy val analysisModel = new ShareableEntityModel(analysisRepository, classOf[Analysis])
     {
-        var checkResult = true
-        var checkDone = false
-        var checkError = ""
+        private var checkResult = true
+        private var checkDone = false
+        private var checkError = ""
 
         def addBinding(analysisId: String, sourceId: String, targetId: String, inputIndex: Int) {
             getById(analysisId).map {
@@ -251,6 +253,7 @@ trait AnalysisModelComponent extends EntityModelComponent
                     }.reduceLeft((a,b) => a && b)
                 } catch {
                     case e: QueryParseException => checkError = "ASK query is not valid ASK SPARQL query."
+                    case e: ConnectException => checkError = "Connection error during checking. Please try again later."
                     case e => throw e
                 }
                 checkDone=true
@@ -259,6 +262,19 @@ trait AnalysisModelComponent extends EntityModelComponent
             }
             val evaluationId = IDGenerator.newId
             evaluationId
+        }
+
+        def checkDSResult(analysis: Analysis, user: Option[User] = None): Boolean = {
+            analysis.pluginInstances.map { p =>
+                p.plugin match {
+                    case x: DataFetcher => {
+                        x.askQuery(p)
+                    }
+                    case _ => {
+                        true
+                    }
+                }
+            }.reduceLeft((a,b) => a && b)
         }
 
         def getCheckState(checkId: String, user: Option[User] = None) : CheckState = {

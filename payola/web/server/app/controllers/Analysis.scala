@@ -1,9 +1,10 @@
 package controllers
 
 import helpers.Secured
-import cz.payola.domain.entities.User
-import cz.payola.web.shared.Payola
+import cz.payola.domain.entities._
+import cz.payola.web.shared._
 import play.mvc.Security.Authenticated
+import cz.payola.model.ModelException
 
 object Analysis extends PayolaController with Secured
 {
@@ -42,6 +43,31 @@ object Analysis extends PayolaController with Secured
 
     def list(page: Int = 1) = authenticated { user: User =>
         Ok(views.html.analysis.list(Some(user), user.ownedAnalyses, page))
+    }
+
+    def listExecutable(page: Int = 1) = authenticated { user: User =>
+        Ok(views.html.analysis.list(Some(user), user.ownedAnalyses.filter(_.checked), page, Some("Executable analyses")))
+    }
+
+    def check() = authenticated { user =>
+        user.ownedAnalyses.map { p =>
+            //println(p.id)
+            val checkResult = Payola.model.analysisModel.checkDSResult(getAnalysisById(Some(user), p.id), Some(user))
+            val analysisM = Payola.model.analysisModel.getById(p.id)
+            analysisM.map {
+                a =>
+                    a.checked = checkResult
+                    a.lastCheck = System.currentTimeMillis()
+                    Payola.model.analysisModel.persist(a)
+            }
+        }
+        Redirect(routes.Analysis.list())
+    }
+
+    private def getAnalysisById(user: Option[User], id: String): Analysis = {
+        Payola.model.analysisModel.getAccessibleToUserById(user, id).getOrElse {
+            throw new ModelException("The analysis doesn't exist.")
+        }
     }
 
     def listAccessible(page: Int = 1) = maybeAuthenticated { user: Option[User] =>

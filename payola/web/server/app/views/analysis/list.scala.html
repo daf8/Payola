@@ -23,6 +23,9 @@
          data-is-public={isPublic.toString}>
      </div>
 }
+@checkedForID(id: String) = @{
+
+}
 
 @ownedBy(owner: String) = @{
     <span class="badge badge-inverse">Not editable, owned by {owner}</span>
@@ -34,6 +37,7 @@
 new scala.xml.NodeBuffer() ++=
 <td>Name</td>
 <td>Actions</td>
+<td><a href="check" class="btn btn-success input"><i class="glyphicon-check glyphicon"></i> Check all analyses</a></td>
 }, { e: cz.payola.domain.Entity =>
 val analysis = e.asInstanceOf[cz.payola.domain.entities.Analysis]
 <td class="listing-name">{
@@ -54,6 +58,11 @@ val analysis = e.asInstanceOf[cz.payola.domain.entities.Analysis]
         }
     }
 </td>
+<td>
+    <div class="btn-toolbar">
+        {checkedForID(e.id)}
+    </div>
+</td>
 },
 routes.Analysis.create(), page, title)
 
@@ -62,5 +71,13 @@ routes.Analysis.create(), page, title)
     new cz.payola.web.client.presenters.entity.SharingPresenter(
         document.getElementsByClassName("share-button-placeholder"),
         "@cz.payola.common.Entity.getClassName(classOf[cz.payola.common.entities.Analysis])"
+    ).initialize();
+</script>
+
+<script language="javascript" type="text/javascript" src="/javaScriptPackage/cz.payola.web.client.presenters.entity.CheckPresenter"></script>
+<script type="text/javascript">
+    new cz.payola.web.client.presenters.entity.CheckPresenter(
+            document.getElementsByClassName("check-button-placeholder"),
+            "@cz.payola.common.Entity.getClassName(classOf[cz.payola.common.entities.Analysis])"
     ).initialize();
 </script>

@@ -20,6 +20,8 @@ POST    /RPC/async                  controllers.RPC.async()
 GET     /analysis/accessible        controllers.Analysis.listAccessible(page: Int ?= 1)
 GET     /analysis/accessible/:uid   controllers.Analysis.listAccessibleByOwner(uid,page: Int ?= 1)
 GET     /analysis/list              controllers.Analysis.list(page: Int ?= 1)
+GET     /analysis/executable        controllers.Analysis.listExecutable(page: Int ?= 1)
+GET     /analysis/check             controllers.Analysis.check()
 GET     /analysis/create            controllers.Analysis.create
 GET     /analysis/edit/:id          controllers.Analysis.edit(id)
 GET     /analysis/take-ownership/:id          controllers.Analysis.takeOwnership(id)

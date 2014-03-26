@@ -202,8 +202,8 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
     private def checkButtonClickHandler(view: AnalysisRunnerView, analysis: Analysis) = {
             clearLastCheck()
             view.overviewView.controls.checkBtn.setIsEnabled(false)
-            view.overviewView.controls.checkInfoBar.removeCssClass("none")
-            view.overviewView.controls.checkInfo.text = "Checking sources with ask queries"
+            view.overviewView.controls.checkBtnCaption.text = "Checking..."
+            view.overviewView.controls.checkInfo.text = ""
             view.overviewView.controls.checkIconFalse.hide()
             view.overviewView.controls.checkIconTrue.hide()
             AnalysisRunner.runCheck(analysisId, checkId, true) { id =>
@@ -342,6 +342,7 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
     private def checkErrorHandler(error: CheckError, view: AnalysisRunnerView, analysis: Analysis) {
         view.overviewView.controls.checkBtn.setIsEnabled(true)
         view.overviewView.controls.checkInfo.text = ""
+        view.overviewView.controls.checkBtnCaption.text = "Check data sources"
         AlertModal.display("Data source check error", error.error)
     }
 
@@ -389,6 +390,7 @@ class AnalysisRunner(elementToDrawIn: String, analysisId: String) extends Presen
 
     private def checkSuccessHandler(success: CheckSuccess, analysis: Analysis, view: AnalysisRunnerView) {
         view.overviewView.controls.checkBtn.setIsEnabled(true)
+        view.overviewView.controls.checkBtnCaption.text = "Check data sources"
         if(success.result){
             view.overviewView.controls.checkInfo.text = "Data sources are valid with ask queries"
             view.overviewView.controls.checkIconTrue.show()
