@@ -17,7 +17,8 @@ class CheckPresenter(placeHolders: dom.NodeList[html.Element], entityType: Strin
             val placeHolder = placeHolders.item(i)
             new CheckButtonPresenter(
                 placeHolder,
-                placeHolder.getAttribute("data-id")
+                placeHolder.getAttribute("data-id"),
+                placeHolder.getAttribute("data-checked").toBoolean
             ).initialize()
             i += 1
         }

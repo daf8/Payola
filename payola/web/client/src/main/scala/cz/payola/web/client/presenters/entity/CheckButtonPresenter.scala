@@ -19,15 +19,16 @@ import cz.payola.web.client.views.bootstrap.modals.AlertModal
 class CheckButtonPresenter(
     val viewElement: html.Element,
     val entityId: String,
+    val checked: Boolean,
     val viewToBlock: Option[View] = None)
     extends Presenter
 {
     val publicityChanged = new SimpleUnitEvent[Boolean]
 
-    private val view = new CheckButton(Payola.model.analysisModel.getAccessibleToUserById(None,entityId).get.checked)
+    private val view = new CheckButton(checked)
 
     def initialize() {
-        view.checkButton.mouseClicked += onCheckButtonClicked _
+        //view.checkButton.mouseClicked += onCheckButtonClicked _
         view.render(viewElement)
     }
 
@@ -87,7 +88,7 @@ class CheckButtonPresenter(
 
 object CheckButtonPresenter
 {
-    def apply(viewElement: html.Element, entity: ShareableEntity, viewToBlock: Option[View]): CheckButtonPresenter = {
-        new CheckButtonPresenter(viewElement, entity.id, viewToBlock)
+    def apply(viewElement: html.Element, entity: Analysis, viewToBlock: Option[View]): CheckButtonPresenter = {
+        new CheckButtonPresenter(viewElement, entity.id, entity.checked, viewToBlock)
     }
 }

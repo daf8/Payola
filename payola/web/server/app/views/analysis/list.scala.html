@@ -23,8 +23,11 @@
          data-is-public={isPublic.toString}>
      </div>
 }
-@checkedForID(id: String) = @{
-
+@checkedForID(id: String, checked: String) = @{
+<div class="btn-group check-button-placeholder"
+     data-id={id}
+     data-checked={checked}>
+</div>
 }
 
 @ownedBy(owner: String) = @{
@@ -60,24 +63,20 @@ val analysis = e.asInstanceOf[cz.payola.domain.entities.Analysis]
 </td>
 <td>
     <div class="btn-toolbar">
-        {checkedForID(e.id)}
+        {checkedForID(e.id, analysis.checked.toString)}
     </div>
 </td>
 },
 routes.Analysis.create(), page, title)
 
 <script language="javascript" type="text/javascript" src="/javaScriptPackage/cz.payola.web.client.presenters.entity.SharingPresenter"></script>
+<script language="javascript" type="text/javascript" src="/javaScriptPackage/cz.payola.web.client.presenters.entity.CheckPresenter"></script>
 <script type="text/javascript">
     new cz.payola.web.client.presenters.entity.SharingPresenter(
         document.getElementsByClassName("share-button-placeholder"),
         "@cz.payola.common.Entity.getClassName(classOf[cz.payola.common.entities.Analysis])"
     ).initialize();
-</script>
-
-<script language="javascript" type="text/javascript" src="/javaScriptPackage/cz.payola.web.client.presenters.entity.CheckPresenter"></script>
-<script type="text/javascript">
     new cz.payola.web.client.presenters.entity.CheckPresenter(
-            document.getElementsByClassName("check-button-placeholder"),
-            "@cz.payola.common.Entity.getClassName(classOf[cz.payola.common.entities.Analysis])"
+            document.getElementsByClassName("check-button-placeholder")
     ).initialize();
 </script>

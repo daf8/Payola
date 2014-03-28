@@ -28,6 +28,7 @@ object DatabaseInitializer extends App
     }
 
     private def persistInitialData() {
+        val inputPlugin = new Input
         val sparqlEndpointPlugin = new SparqlEndpointFetcher
         val payolaStoragePlugin = new PayolaStorage
         val concreteSparqlQueryPlugin = new ConcreteSparqlQuery
@@ -45,6 +46,7 @@ object DatabaseInitializer extends App
         val limit = new Limit
 
         val publicPlugins = List(
+            inputPlugin,
             sparqlEndpointPlugin,
             concreteSparqlQueryPlugin,
             concreteSparqlQueryPlugin,
