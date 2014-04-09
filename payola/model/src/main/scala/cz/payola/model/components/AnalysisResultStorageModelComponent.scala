@@ -2,20 +2,20 @@ package cz.payola.model.components
 
 import cz.payola.domain.RdfStorageComponent
 import cz.payola.domain.entities.User
-import cz.payola.domain.rdf.RdfRepresentation
 import cz.payola.common.rdf._
 import cz.payola.domain.entities.AnalysisResult
 import cz.payola.data.DataContextComponent
 import scala.collection._
+import cz.payola.domain.entities.plugins.concrete.data.PayolaStorage
+import cz.payola.common.rdf.Graph
 import java.io._
 import scala.actors.Futures._
-
-
 
 import com.hp.hpl.jena.query._
 import com.hp.hpl.jena.rdf.model._
 import org.apache.jena.riot._
 import org.apache.jena.riot.lang._
+import cz.payola.domain.rdf._
 
 trait AnalysisResultStorageModelComponent
 {
@@ -36,31 +36,37 @@ trait AnalysisResultStorageModelComponent
                     .filterNot(_.startsWith("http://schema.org"))
             }
 
-            def saveGraph(graph: Graph, analysisId: String, evaluationId: String, host: String, user: Option[User] = None) {
+            def saveGraph(graph: Graph, analysisId: String, evaluationId: String) {
 
-                if(!graph.isInstanceOf[cz.payola.domain.rdf.Graph]) {
-                    return
-                }
-
-                val domainGraph = graph.asInstanceOf[cz.payola.domain.rdf.Graph]
-
-                //store control in DB
                 analysisResultRepository.storeResult(new AnalysisResult(
-                    analysisId, user, evaluationId, graph.vertices.size,
+                    analysisId, None, evaluationId, graph.vertices.size,
                     new java.sql.Timestamp(System.currentTimeMillis)))
 
                 val uri = constructUri(evaluationId)
+                rdfStorage.storeGraphGraphProtocol(uri, graph.asInstanceOf[cz.payola.domain.rdf.Graph])
+            }
 
-                val serializedGraph = domainGraph.toStringRepresentation(RdfRepresentation.RdfXml)
+            /**
+             * Checks if the evaluation if stored.
+             */
+            def exists(evaluationId: String) = analysisResultRepository.exists(evaluationId)
 
             def analysisId(evaluationId: String) : String = {
                 analysisResultRepository.byEvaluationId(evaluationId).map{r => r.analysisId}.getOrElse("")
             }
 
+            /**
+             * Get whole graph
+             */
             def getGraph(evaluationId: String): Graph = {
+                getGraph("CONSTRUCT { ?s ?p ?o } WHERE {?s ?p ?o.}", evaluationId)
+            }
 
-                //Console.println("Trying to load graph")
-                val graph = rdfStorage.executeSPARQLQuery("CONSTRUCT { ?s ?p ?o } WHERE {?s ?p ?o.}", constructUri(evaluationId))
+            def getGraph(sparqlQuery: String, evaluationId: String): Graph = {
+                val graphSize = rdfStorage.executeSPARQLQuery("SELECT (COUNT(*) as ?graphsize) WHERE {?s ?p ?o.}", constructUri(evaluationId))
+                val graphVerticesCount = graphSize.edges.find(_.uri.contains("value")).map(_.destination.toString().toLong)
+
+                val graph = rdfStorage.executeSPARQLQuery(sparqlQuery, constructUri(evaluationId), graphVerticesCount)
                 analysisResultRepository.updateTimestamp(evaluationId)
                 graph
             }
@@ -81,6 +87,17 @@ trait AnalysisResultStorageModelComponent
 
             }
 
+            def getGraph(sparqlQueryList: List[String], evaluationId: String): Graph = {
+                val graphSize = rdfStorage.executeSPARQLQuery("SELECT (COUNT(*) as ?graphsize) WHERE {?s ?p ?o.}", constructUri(evaluationId))
+                val graphVerticesCount = graphSize.edges.find(_.uri.contains("value")).map(_.destination.toString().toLong)
+
+                val graph = sparqlQueryList.map{ query =>
+                    rdfStorage.executeSPARQLQuery(query, constructUri(evaluationId), graphVerticesCount)
+                }.reduce(_ + _)
+                analysisResultRepository.updateTimestamp(evaluationId)
+                graph
+            }
+
             def removeGraph(evaluationId: String, analysisId: String) {
                 rdfStorage.deleteGraph(constructUri(evaluationId))
                 analysisResultRepository.deleteResult(evaluationId, analysisId)
@@ -90,46 +107,10 @@ trait AnalysisResultStorageModelComponent
                 "http://"+evaluationId
             }
 
-            def paginate(graph: Graph, page: Int = 0, allowedLinesOnPage: Int = 50): Graph = {
-                //group edges by origin vertex
-                val edgesByOrigin = new mutable.HashMap[String, mutable.HashMap[String, mutable.ListBuffer[Edge]]]
-                graph.edges.foreach { edge =>
-                    //get or create grouping by origin vertex
-                    val edgesByEdgeType = edgesByOrigin.getOrElseUpdate(edge.origin.uri, new mutable.HashMap[String, mutable.ListBuffer[Edge]])
-                    //get or create grouping by edge and add edge
-                    edgesByEdgeType.getOrElseUpdate(edge.uri, new mutable.ListBuffer[Edge]) += edge
-                }
-
-                var linesOnPage = 0
-                var currentPageNumber = 0
-
-                val requestedPageEdges = new mutable.ListBuffer[Edge]
-                edgesByOrigin.foreach{ gE =>
-                    linesOnPage += gE._2.size
-
-                    if (linesOnPage > allowedLinesOnPage) {
-                        currentPageNumber += 1
-                        linesOnPage = gE._2.size
-                    }
-
-                    if(currentPageNumber != page) {
-                        false
-                    } else if (linesOnPage < allowedLinesOnPage){ //edge is on current page
-                        gE._2.foreach{ groupedEdges =>
-                            requestedPageEdges ++= groupedEdges._2
-                        }
-                    } else {
-                        false
-                    }
-                }
-
-                val numberOfPages = currentPageNumber + 1
-
-                new Graph(immutable.Seq[Vertex](), requestedPageEdges.toList, Some(numberOfPages))
+            def getEmptyGraph(): Graph = {
+                JenaGraph.empty
             }
         }
-
-
 
     val maxStoredAnalyses: Long
 
