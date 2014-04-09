@@ -32,6 +32,7 @@ class AnalysisEditor(parentElementId: String, analysisIdParam: String)
                 view.render(parentElement)
                 bindParameterChangedEvent(view.visualizer)
                 bindConnectButtonClickedEvent(view, analysis)
+                bindAskButtonClickedEvent(view, analysis)
                 bindDeleteButtonClickedEvent(view.visualizer)
                 constructBranches(analysis)
                 bindMenuEvents(view, analysis)
@@ -65,6 +66,10 @@ class AnalysisEditor(parentElementId: String, analysisIdParam: String)
 
     private def bindConnectButtonClickedEvent(view: AnalysisEditorView, analysis: Analysis) {
         view.visualizer.connectButtonClicked += onConnectClicked(view, analysis)
+    }
+
+    private def bindAskButtonClickedEvent(view: AnalysisEditorView, analysis: Analysis) {
+        view.visualizer.askButtonClicked += onAskClicked(view, analysis)
     }
 
     private def bindDeleteButtonClickedEvent(visualizer: EditableAnalysisVisualizer) {

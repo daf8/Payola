@@ -17,6 +17,9 @@ trait AnalysisRepositoryComponent extends TableRepositoryComponent
     private lazy val pluginInstanceBindingRepository = new LazyTableRepository[PluginInstanceBinding](
         schema.pluginInstanceBindings, PluginInstanceBinding)
 
+    private lazy val compatibilityCheckRepository = new LazyTableRepository[CompatibilityCheck](
+        schema.compatibilityChecks, CompatibilityCheck)
+
     /**
      * A repository to access persisted analyses
      */
@@ -81,11 +84,19 @@ trait AnalysisRepositoryComponent extends TableRepositoryComponent
             pluginInstanceBindingRepository.removeById(pluginInstanceBindingId)
         }
 
+        def removeCompatibilityCheckById(compatibilityCheckId: String): Boolean = wrapInTransaction {
+            compatibilityCheckRepository.removeById(compatibilityCheckId)
+        }
+
         def loadPluginInstances(analysis: Analysis) {
             _loadAnalysis(analysis)
         }
 
         def loadPluginInstanceBindings(analysis: Analysis) {
+            _loadAnalysis(analysis)
+        }
+
+        def loadCompatibilityChecks(analysis: Analysis) {
             _loadAnalysis(analysis)
         }
 

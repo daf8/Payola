@@ -25,6 +25,11 @@ import cz.payola.common.rdf.DataCubeVocabulary
 import cz.payola.common.rdf.DataCubeDataStructureDefinition
 import cz.payola.web.client.presenters.entity.PrefixPresenter
 import s2js.compiler.javascript
+import cz.payola.domain.entities.plugins.concrete.DataFetcher
+import cz.payola.domain._
+import cz.payola.domain.rdf.Graph
+import cz.payola.common.rdf.DataCubeVocabulary
+import cz.payola.common.rdf.DataCubeDataStructureDefinition
 
 /**
  * Presenter responsible for the logic of the Analysis Builder editor.
@@ -145,6 +150,7 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
                         connectPlugin(mergeInstance, view, analysis)
                         false
                 }
+                mergeInstance.askButtonClicked += onAskClicked(view, analysis)
 
                 mergeInstance.parameterValueChanged += onParameterValueChanged
                 mergeInstance.deleteButtonClicked += onDeleteClick
@@ -184,6 +190,7 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
                 view.visualizer.renderPluginInstanceView(instance)
 
                 instance.connectButtonClicked += onConnectClicked(view, analysis)
+                instance.askButtonClicked += onAskClicked(view, analysis)
 
                 instance.parameterValueChanged += onParameterValueChanged
                 instance.deleteButtonClicked += onDeleteClick
@@ -203,6 +210,7 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
                 connectPlugin(evt.target, view, analysis)
                 false
         }
+        instanceView.askButtonClicked += onAskClicked(view,analysis)
 
         instanceView.parameterValueChanged += onParameterValueChanged
         instanceView.deleteButtonClicked += onDeleteClick
@@ -421,6 +429,33 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
         analysis: Analysis): (EventArgs[PluginInstanceView]) => Unit = {
         evt =>
             connectPlugin(evt.target, view, analysis)
+            false
+    }
+
+    protected def onAskClicked(view: AnalysisEditorView,
+        analysis: Analysis): (EventArgs[PluginInstanceView]) => Unit = {
+        evt =>
+            val x:Int = allSources.count(_ => true)
+            var y:Int = 0
+            var z:Int = 0
+            blockPage("Checking data sources with ASK query")
+            allSources.map{
+                a =>
+                    AnalysisBuilderData.isExec(analysisId,a.id,evt.target.getId){
+                        c =>
+                            y=y+1
+                            if(c){
+                                z=z+1
+                            }
+                            if (x==y){
+                                AlertModal.display("Data source check successful","Available data sources: "+z)
+                                unblockPage()
+                            }
+                    }{
+                        err =>
+                            fatalErrorHandler(err)
+                    }
+            }
             false
     }
 

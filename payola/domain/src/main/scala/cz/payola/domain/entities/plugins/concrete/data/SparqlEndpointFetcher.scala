@@ -68,6 +68,14 @@ sealed class SparqlEndpointFetcher(name: String, inputCount: Int, parameters: im
             result.toBoolean
         }
     }
+
+    def askQuerySource(instance: PluginInstance, query: String): Boolean = {
+        usingDefined(getEndpointURL(instance)) { (endpointURL) =>
+            val sparqlQuery = QueryFactory.create(query)
+            val result: String = new SparqlEndpoint(endpointURL).askQuery(sparqlQuery.toString)
+            result.toBoolean
+        }
+    }
 }
 
 object SparqlEndpointFetcher

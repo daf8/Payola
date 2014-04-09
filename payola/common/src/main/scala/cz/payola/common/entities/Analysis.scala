@@ -3,7 +3,7 @@ package cz.payola.common.entities
 import scala.collection._
 import cz.payola.common.Entity
 import cz.payola.common.entities.plugins.PluginInstance
-import cz.payola.common.entities.analyses.PluginInstanceBinding
+import cz.payola.common.entities.analyses._
 
 /**
   * A set of analytical plugin instances that are bound together (the output of one plugin instance is bound to the
@@ -19,12 +19,16 @@ trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with S
     /** Type of the bindings between analytical plugin instances. */
     type PluginInstanceBindingType <: PluginInstanceBinding
 
+    type CompatibilityCheckType <: CompatibilityCheck
+
     /** Type of the ontology customization for analysis */
     type OntologyCustomizationType <: settings.OntologyCustomization
 
     protected var _pluginInstances = mutable.ArrayBuffer[PluginInstanceType]()
 
     protected var _pluginInstanceBindings = mutable.ArrayBuffer[PluginInstanceBindingType]()
+
+    protected var _compatibilityChecks = mutable.ArrayBuffer[CompatibilityCheckType]()
 
     protected var _defaultCustomization: Option[OntologyCustomizationType] = None
 
@@ -35,6 +39,9 @@ trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with S
 
     /** Bindings between the analytical plugin instances. */
     def pluginInstanceBindings: immutable.Seq[PluginInstanceBindingType] = _pluginInstanceBindings.toList
+
+    /** Bindings between the analytical plugin instances. */
+    def compatibilityChecks: immutable.Seq[CompatibilityCheckType] = _compatibilityChecks.toList
 
     /** Default ontology customization for this analysis */
     def defaultOntologyCustomization = _defaultCustomization
@@ -70,10 +77,26 @@ trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with S
     }
 
     /**
+     * Stores the specified check to the analysis.
+     * @param checking Plugin instance compatibility with data source
+     */
+    protected def storeChecking(checking: CompatibilityCheckType) {
+       // _compatibilityChecks += checking
+    }
+
+    /**
       * Discards the specified plugin instance from the analysis. Complementary operation to store.
       * @param binding The plugin instance binding to discard.
       */
     protected def discardBinding(binding: PluginInstanceBindingType) {
         _pluginInstanceBindings -= binding
+    }
+
+    /**
+     * Discards the specified plugin instance from the analysis. Complementary operation to store.
+     * @param binding The plugin instance binding to discard.
+     */
+    protected def discardChecking(checking: CompatibilityCheckType) {
+        _compatibilityChecks -= checking
     }
 }

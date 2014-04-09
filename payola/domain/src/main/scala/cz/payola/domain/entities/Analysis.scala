@@ -27,6 +27,8 @@ class Analysis(protected var _name: String, protected var _owner: Option[User])
 
     type PluginInstanceBindingType = PluginInstanceBinding
 
+    type CompatibilityCheckType = CompatibilityCheck
+
     type InstanceBindings = Map[PluginInstance, Seq[PluginInstanceBinding]]
 
     type OntologyCustomizationType = OntologyCustomization
@@ -273,6 +275,23 @@ class Analysis(protected var _name: String, protected var _owner: Option[User])
     }
 
     /**
+     * Adds a new compatibility check to the analysis.
+     * @param checking The plugin instance binding to add.
+     */
+    def addChecking(checking: CompatibilityCheckType) {
+        storeChecking(checking)
+    }
+
+    /**
+     * Adds a new compatible plugin instance and data source.
+     * @param sourcePluginInstance The source plugin instance.
+     * @param compatibleDataSource The compatible data source.
+     */
+    def addChecking(sourcePluginInstance: PluginInstance, compatibleDataSource: DataSource) {
+        addChecking(new CompatibilityCheck(sourcePluginInstance, compatibleDataSource))
+    }
+
+    /**
       * Collapses the specified binding including the source and the target into one plugin instance. The binding
       * target instance must have exactly one input in order to collapse the binding. The binding source instance must
       * have exactly same number of inputs as the instance that replaces the binding.
@@ -309,6 +328,22 @@ class Analysis(protected var _name: String, protected var _owner: Option[User])
             invalidatePluginInstanceBindings()
             discardBinding(binding)
         }
+    }
+
+    /**
+     * Removes the specified plugin instance binding from the analysis.
+     * @param binding The plugin instance binding to be removed.
+     * @return The removed plugin instance binding.
+     */
+    def removeChecking(checking: CompatibilityCheckType): Option[CompatibilityCheckType] = {
+        ifContains(compatibilityChecks, checking) {
+            //invalidatePluginInstanceBindings()
+            discardChecking(checking)
+        }
+    }
+
+    def removeChecking(sourcePluginInstance: PluginInstance, compatibleDataSource: DataSource) {
+        removeChecking(new CompatibilityCheck(sourcePluginInstance, compatibleDataSource))
     }
 
     /**

@@ -19,9 +19,24 @@ class EditablePluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
 
     val deleteButtonClicked = new SimpleUnitEvent[EditablePluginInstanceView]
 
+    val askButtonClicked = new SimpleUnitEvent[EditablePluginInstanceView]
+
     val parameterValueChanged = new SimpleUnitEvent[ParameterValue]
 
     alertDiv.addCssClass("editable")
+
+    def getSourceViews: Seq[View] = {
+        if(pluginInstance.plugin.name=="Input") {
+            val askButton = new Button(new Text("Executa ASK query on datasources"))
+            askButton.mouseClicked += { e =>
+                askButtonClicked.triggerDirectly(this)
+                false
+            }
+            //val selectSource = new InputControl(
+            //    "Available data sources:", new Select("", "", "", /*PluginManager.getAccessibleDataFetchers().map(p => List(new SelectOption(p.className, p.id)))*/List(/*new SelectOption(pluginInstance.plugin.name,"a")*/), "form-control"), None, None)
+            List(askButton)//,selectSource)
+        }else{List()}
+    }
 
     def getAdditionalControlsViews: Seq[View] = {
         val connect = new Button(new Text("Add Connection"))

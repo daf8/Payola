@@ -93,6 +93,15 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
             result.toBoolean
         }
     }
+
+    def askQuerySource(instance: PluginInstance, query: String): Boolean = {
+        usingDefined(getEndpointURL(instance), getUsername(instance), getPassword(instance)) {
+            (endpointURL, username, password) =>
+                val sparqlQuery = QueryFactory.create(query)
+                val result: String = new VirtuosoSecuredEndpoint(endpointURL, username, password).askQuery(sparqlQuery.toString)
+                result.toBoolean
+        }
+    }
 }
 
 object VirtuosoSecuredEndpointFetcher

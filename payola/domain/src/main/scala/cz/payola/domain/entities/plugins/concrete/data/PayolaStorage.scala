@@ -54,6 +54,22 @@ sealed class PayolaStorage(name: String, inputCount: Int, parameters: immutable.
             storageComponent.rdfStorage.executeSPARQLAskQuery(sparqlQuery.toString, groupURI).toBoolean
         }
     }
+
+    def askQuerySource(instance: PluginInstance, query: String): Boolean = {
+        usingDefined(instance.getStringParameter(PayolaStorage.groupURIParameter)) {
+            (groupURI) =>
+                if (storageComponent == null) {
+                    throw new PluginException("The storage component is null. " +
+                        "The plugin has to be instantiated with non-null storage component.")
+                }
+
+                // Don't allow the users to specify other graph URIs.
+                val sparqlQuery = QueryFactory.create(query)
+                sparqlQuery.getGraphURIs.clear()
+
+                storageComponent.rdfStorage.executeSPARQLAskQuery(sparqlQuery.toString, groupURI).toBoolean
+        }
+    }
 }
 
 object PayolaStorage

@@ -13,6 +13,8 @@ class ReadOnlyPluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
 {
     def getAdditionalControlsViews: Seq[View] = List()
 
+    def getSourceViews: Seq[View] = List()
+
     def getParameterViews: Seq[View] = {
 
         val listItems = filterParams(getPlugin.parameters).flatMap {

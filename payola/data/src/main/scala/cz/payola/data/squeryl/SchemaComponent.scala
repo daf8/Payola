@@ -9,7 +9,7 @@ import cz.payola.data.squeryl.entities._
 import cz.payola.data.squeryl.entities.settings._
 import cz.payola.data.squeryl.entities.plugins._
 import cz.payola.data.squeryl.entities.plugins.parameters._
-import cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding
+import cz.payola.data.squeryl.entities.analyses._
 import cz.payola.data.squeryl.entities.privileges.PrivilegeDbRepresentation
 import cz.payola.data.squeryl.entities.Group
 
@@ -81,6 +81,9 @@ trait SchemaComponent
 
         /**Table of [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s */
         val pluginInstanceBindings = table[PluginInstanceBinding]("pluginInstanceBindings")
+
+        /**Table of [[entities.analyses.CompatibilityCheck]]s */
+        val compatibilityChecks = table[CompatibilityCheck]("compatibilityCheck")
 
         /**Table of [[cz.payola.data.squeryl.entities.analyses.DataSource]]s */
         val dataSources = table[DataSource]("dataSources")
@@ -172,6 +175,13 @@ trait SchemaComponent
          */
         lazy val pluginsDataSources = oneToManyRelation(plugins, dataSources).via(
             (p, ds) => p.id === ds.pluginId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.DataSource]]s to
+         * a [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]]s
+         */
+        lazy val analysesCompatibilityChecks = oneToManyRelation(analyses, compatibilityChecks).via(
+            (a, cc) => a.id === cc.analysisId)
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
@@ -351,6 +361,9 @@ trait SchemaComponent
             factoryFor(pluginInstanceBindings) is {
                 new PluginInstanceBinding("", null, null, 0)
             },
+            factoryFor(compatibilityChecks) is {
+                new CompatibilityCheck("", null, null)
+            },
             factoryFor(booleanParameters) is {
                 new BooleanParameter("", "", false, None)
             },
@@ -451,6 +464,15 @@ trait SchemaComponent
                     binding.analysisId is (dbType(COLUMN_TYPE_ID)),
                     columns(binding.targetPluginInstanceId, binding.inputIndex) are (unique),
                     columns(binding.sourcePluginInstanceId, binding.analysisId) are (unique)
+                ))
+
+            on(compatibilityChecks)(checking =>
+                declare(
+                    checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    checking.compatibleDataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    checking.sourcePluginInstanceId is (dbType(COLUMN_TYPE_ID)),
+                    checking.analysisId is (dbType(COLUMN_TYPE_ID)),
+                    columns(checking.compatibleDataSourceId, checking.sourcePluginInstanceId) are (unique)
                 ))
 
             on(booleanParameterValues)(param =>
@@ -622,6 +644,7 @@ trait SchemaComponent
 
             // When an Analysis is deleted, all of the its plugin instances will get deleted.
             analysesPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            analysesCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
             analysesPluginInstancesBindings.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When a Parameter is deleted, all of the its parameterValues will get deleted.

@@ -5,6 +5,7 @@ import s2js.compiler._
 import cz.payola.domain.entities.User
 import cz.payola.common.entities.plugins._
 import java.util.Date
+import cz.payola.domain.entities.plugins.concrete.DataFetcher
 
 @secured
 @remote object AnalysisBuilderData
@@ -127,5 +128,26 @@ import java.util.Date
         (failCallback: (Throwable => Unit)) {
         val sources = Payola.model.dataSourceModel.getAccessibleToUser(Some(user))
         successCallback(sources)
+    }
+
+    @async def isExec(analysisId: String, dataSourceId: String, pluginInstanceId: String, user: User = null)(successCallback: (Boolean => Unit))
+        (failCallback: (Throwable => Unit)) {
+        val dataSource = Payola.model.dataSourceModel.getAccessibleToUserById(Some(user),dataSourceId).getOrElse {
+            throw new Exception("DataSource not found.")
+        }
+        Payola.model.analysisModel.removeChecking(analysisId, pluginInstanceId, dataSource)
+        val query = Payola.model.analysisModel.getAccessibleToUserById(Some(user),analysisId).get.pluginInstances.filter(_.id==pluginInstanceId).head.getStringParameter("ASK query").get
+        val copy = dataSource.toInstance
+        val result =
+            copy.plugin match {
+                case x: DataFetcher => {
+                    x.askQuerySource(copy,query)
+                }
+                case _ => throw new Exception("Data source is not a data source")
+            }
+        if (result) {
+            Payola.model.analysisModel.addChecking(analysisId, pluginInstanceId, dataSource)
+        }
+        successCallback(result)
     }
 }

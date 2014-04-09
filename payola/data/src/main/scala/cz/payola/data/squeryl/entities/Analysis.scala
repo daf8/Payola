@@ -47,6 +47,10 @@ class Analysis(override val id: String, name: String, o: Option[User], var _isPu
 
     private lazy val _pluginInstancesBindingsQuery = context.schema.analysesPluginInstancesBindings.left(this)
 
+    _compatibilityChecks = null
+
+    private lazy val _compatibilityCheckQuery = context.schema.analysesCompatibilityChecks.left(this)
+
     _defaultCustomization = null
 
     var defaultCustomizationId: Option[String] = None
@@ -94,6 +98,18 @@ class Analysis(override val id: String, name: String, o: Option[User], var _isPu
         _pluginInstanceBindings = mutable.ArrayBuffer(value: _*)
     }
 
+    override def compatibilityChecks: immutable.Seq[CompatibilityCheckType] = {
+        if (_compatibilityChecks == null) {
+            context.analysisRepository.loadCompatibilityChecks(this)
+        }
+
+        _compatibilityChecks.toList
+    }
+
+    def compatibilityChecks_=(value: Seq[CompatibilityCheckType]) {
+        _compatibilityChecks = mutable.ArrayBuffer(value: _*)
+    }
+
     override protected def storePluginInstance(instance: Analysis#PluginInstanceType) {
         super.storePluginInstance(associatePluginInstance(PluginInstance(instance)))
     }
@@ -108,10 +124,19 @@ class Analysis(override val id: String, name: String, o: Option[User], var _isPu
         super.storeBinding(associatePluginInstanceBinding(PluginInstanceBinding(binding)))
     }
 
+    override protected def storeChecking(checking: Analysis#CompatibilityCheckType) {
+        super.storeChecking(associateCompatibilityCheck(CompatibilityCheck(checking)))
+    }
+
     override protected def discardBinding(binding: Analysis#PluginInstanceBindingType) {
         context.analysisRepository.removePluginInstanceBindingById(binding.id)
 
         super.discardBinding(binding)
+    }
+    override protected def discardChecking(checking: Analysis#CompatibilityCheckType) {
+        context.analysisRepository.removeCompatibilityCheckById(checking.id)
+
+        super.discardChecking(checking)
     }
 
     def associatePluginInstance(instance: PluginInstance): PluginInstance = {
@@ -123,5 +148,9 @@ class Analysis(override val id: String, name: String, o: Option[User], var _isPu
 
     def associatePluginInstanceBinding(instance: PluginInstanceBinding): PluginInstanceBinding = {
         context.schema.associate(instance, _pluginInstancesBindingsQuery)
+    }
+
+    def associateCompatibilityCheck(instance: CompatibilityCheck): CompatibilityCheck = {
+        context.schema.associate(instance, _compatibilityCheckQuery)
     }
 }

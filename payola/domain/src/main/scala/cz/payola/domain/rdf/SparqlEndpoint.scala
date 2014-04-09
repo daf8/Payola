@@ -30,7 +30,7 @@ class SparqlEndpoint(val endpointURL: String)
     private def _askQuery[B](query: String)(inflector: ((String) => B)): B = {
         QueryFactory.create(query).getQueryType match {
             case Query.QueryTypeAsk => {
-                inflector(new Downloader(queryUrl(query), "text/plain").result)
+                inflector(new Downloader(queryUrl(query), "text/html").result.replaceAll("""<(.*?)>""", ""))
             }
             case _ => throw new DomainException(
                 "Unsupported query type. The only supported query types is ASK.")

@@ -25,6 +25,8 @@ class EditableAnalysisVisualizer(analysis: Analysis, prefixApplier: PrefixApplie
 
     val deleteButtonClicked = new SimpleUnitEvent[EditablePluginInstanceView]
 
+    val askButtonClicked = new SimpleUnitEvent[EditablePluginInstanceView]
+
     val instanceFactory = new PluginInstanceViewFactory(prefixApplier)
 
     def createPluginInstanceView(instance: PluginInstance): PluginInstanceView = {
@@ -51,6 +53,9 @@ class EditableAnalysisVisualizer(analysis: Analysis, prefixApplier: PrefixApplie
         }
         instanceView.deleteButtonClicked += {
             e => deleteButtonClicked.triggerDirectly(e.target)
+        }
+        instanceView.askButtonClicked += {
+            e => askButtonClicked.triggerDirectly(e.target)
         }
     }
 

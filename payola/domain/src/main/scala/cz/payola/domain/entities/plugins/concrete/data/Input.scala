@@ -69,6 +69,8 @@ sealed class Input(name: String, inputCount: Int, parameters: immutable.Seq[Para
         }*/
         true
     }
+
+    def askQuerySource(instance: PluginInstance, query: String): Boolean = false
 }
 
 object Input

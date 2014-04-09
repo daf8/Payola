@@ -9,6 +9,10 @@ import cz.payola.web.client.views.elements.Div
 import cz.payola.common.entities.plugins._
 import cz.payola.web.client.events.SimpleUnitEvent
 import cz.payola.web.client.models.PrefixApplier
+import cz.payola.web.client.views.bootstrap.InputControl
+import cz.payola.web.client.views.elements.form.fields._
+import cz.payola.web.shared.managers.PluginManager
+import cz.payola.domain.entities.plugins.concrete.DataFetcher
 
 abstract class PluginInstanceView(
     val pluginInstance: PluginInstance,
@@ -26,10 +30,14 @@ abstract class PluginInstanceView(
 
     private val additionalControls = new Div(controlViews, "controls")
 
+    private val sourceViews = getSourceViews
+
+    private val source = new Div(sourceViews, "source")
+
     protected val paramsWrapper = new Div(List(paramsDiv),"params-wrapper")
 
     protected val panelHeading = new Div(heading, "panel-heading")
-    protected val panelBody = new Div(List(paramsWrapper, additionalControls),"panel-body")
+    protected val panelBody = new Div(List(paramsWrapper, source, additionalControls),"panel-body")
     protected val alertDiv = new Div(List(panelHeading, panelBody), "panel panel-info instance")
 
     private val clearSpan = new Span(List(), "clear")
@@ -42,7 +50,11 @@ abstract class PluginInstanceView(
 
     def getAdditionalControlsViews: Seq[View]
 
+    def getSourceViews: Seq[View]
+
     def getPlugin: Plugin = pluginInstance.plugin
+
+    def getAsk: String = pluginInstance.getParameter("ASK query").get.toString
 
     def getId: String = pluginInstance.id
 

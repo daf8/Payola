@@ -11,7 +11,7 @@ class CheckButton(private var _checked: Boolean) extends ComposedView
 
     private val checkButtonIcon = new Icon(Icon.check)
 
-    val checkButton = new Button(checkButtonText, "col-lg-1", checkButtonIcon)
+    val checkButton = new Button(checkButtonText, "", checkButtonIcon)
 
     checked = _checked
 
@@ -22,20 +22,13 @@ class CheckButton(private var _checked: Boolean) extends ComposedView
     def checked_=(value: Boolean) {
         _checked = value
         if (_checked) {
-            checkButtonText.text_=(" OK")
+            checkButtonText.text_=(" Successfully checked")
             checkButton.removeCssClass("btn-warning")
             checkButton.addCssClass("btn-success")
-            //checkButton.setAttribute(Icon,new Icon(Icon.ok))
-            //checkButtonIcon.
-            //checkButtonText.
-            //checkButtonIcon.render(checkButton)
         } else {
-            checkButtonText.text_=(" KO")
+            checkButtonText.text_=(" Not checked")
             checkButton.addCssClass("btn-warning")
             checkButton.removeCssClass("btn-success")
-            //checkButton.setAttribute(Icon,new Icon(Icon.remove))
-            //checkButtonIcon = new Icon(Icon.remove)
-            //checkButtonIcon.render(checkButton)
         }
     }
 

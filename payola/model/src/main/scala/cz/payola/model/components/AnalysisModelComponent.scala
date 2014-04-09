@@ -14,6 +14,7 @@ import cz.payola.domain.entities.plugins.concrete.data._
 import cz.payola.domain.entities.plugins.concrete.query._
 import scala.collection.mutable
 import cz.payola.common.entities.analyses.PluginInstanceBinding
+import cz.payola.common.entities.analyses.CompatibilityCheck
 import scala.Some
 import cz.payola.common.EvaluationError
 import cz.payola.domain.entities.analyses.evaluation.Success
@@ -56,6 +57,46 @@ trait AnalysisModelComponent extends EntityModelComponent
                     }
 
                     a.addBinding(source.get, target.get, inputIndex)
+            }.getOrElse {
+                throw new Exception("Unknown analysis.")
+            }
+        }
+
+        def addChecking(analysisId: String, pluginInstanceId: String, dataSource: DataSource) {
+            getById(analysisId).map {
+                a =>
+                    val pluginInstance = a.pluginInstances.find(_.id == pluginInstanceId)
+                    if (!pluginInstance.isDefined) {
+                        throw new Exception("Invalid plugin instance or data source.")
+                    }
+                    a.addChecking(pluginInstance.get, dataSource)
+            }.getOrElse {
+                throw new Exception("Unknown analysis.")
+            }
+        }
+
+        def removeChecking(analysisId: String, pluginInstanceId: String, dataSource: DataSource) {
+            //val analysis = analysisRepository.getById(analysisId).getOrElse {
+            //    throw new ModelException("Unknown analysis ID.")
+            //}
+
+            //val compatibilityCheck = analysis.//.find(_.sourcePluginInstance == pluginInstanceId).getOrElse {
+                //throw new ModelException("Unknown plugin instance ID.")
+            //}
+
+            //println(compatibilityCheck)
+
+            //analysis.removePluginInstance(instance)
+
+
+            getById(analysisId).map {
+                a =>
+                    val pluginInstance = a.pluginInstances.find(_.id == pluginInstanceId)
+                    if (!pluginInstance.isDefined) {
+                        throw new Exception("Invalid plugin instance or data source.")
+                    }
+                        //println(compatibilityChecks)
+                    //a.removeChecking(pluginInstance.get, dataSource)
             }.getOrElse {
                 throw new Exception("Unknown analysis.")
             }
