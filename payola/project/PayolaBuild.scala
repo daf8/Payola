@@ -184,8 +184,8 @@ object PayolaBuild extends Build
         "domain", file("domain"),
         settings = payolaSettings ++ Seq(
             libraryDependencies ++= Seq(
-                "org.apache.jena" % "jena-core" % "2.11.0",
-                "org.apache.jena" % "jena-arq" % "2.11.0",
+                "org.apache.jena" % "jena-core" % "2.11.1",
+                "org.apache.jena" % "jena-arq" % "2.11.1",
                 "org.apache.jena" % "jena" % "2.11.0",
                 "org.apache.httpcomponents" % "httpclient" % "4.2.4",
                 "commons-io" % "commons-io" % "2.4",
@@ -204,7 +204,8 @@ object PayolaBuild extends Build
                 "com.h2database" % "h2" % "1.3.165",
                 "mysql" % "mysql-connector-java" % "5.1.18",
                 "postgresql" % "postgresql" % "9.1-901.jdbc4",
-                "org.apache.derby" % "derby" % "10.8.2.2"
+                "org.apache.derby" % "derby" % "10.8.2.2",
+                "org.scalaj" % "scalaj-http_2.9.2" % "0.3.14"
             )
         )
     ).dependsOn(

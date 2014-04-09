@@ -53,15 +53,8 @@ trait AnalysisResultStorageModelComponent
 
                 val serializedGraph = domainGraph.toStringRepresentation(RdfRepresentation.RdfXml)
 
-                //val tmpFile = new File("/opt/www/virtuoso/evaluation/"+evaluationId+".rdf")
-                val tmpFile = new File("D:\\skola\\ing\\DIP\\virtuoso-opensource\\evaluation\\"+evaluationId+".rdf")
-                printToFile(tmpFile)(p => {
-                    p.println(serializedGraph)
-                })
-
-                rdfStorage.storeGraphAtURL(uri, "http://"+host+"/evaluation/"+evaluationId+".rdf")
-
-                tmpFile.delete()
+            def analysisId(evaluationId: String) : String = {
+                analysisResultRepository.byEvaluationId(evaluationId).map{r => r.analysisId}.getOrElse("")
             }
 
             def getGraph(evaluationId: String): Graph = {

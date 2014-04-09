@@ -38,6 +38,8 @@ trait Storage
      */
     def storeGraphFromFile(graphURI: String, file: File, fileType: RdfRepresentation.Type)
 
+    def storeGraphGraphProtocol(graphURI: String, graph: Graph)
+
     /**
       * Adds a graph with the specified URI to the specified group. A graph with must already exist on the server.
       * @param graphURI URI of the graph.
@@ -77,10 +79,16 @@ trait Storage
       * @param groupURI URI of the group whose data should be queried.
       * @return The resulting graph.
       */
-    def executeSPARQLQuery(query: String, groupURI: String): Graph = {
+    def executeSPARQLQuery(query: String, groupURI: String, setResultsCount: Option[Long] = None): Graph = {
         val sparqlQuery = QueryFactory.create(query)
         sparqlQuery.addGraphURI(groupURI)
-        executeSPARQLQuery(sparqlQuery.toString)
+        val graph: Graph = executeSPARQLQuery(sparqlQuery.toString)
+
+        if(setResultsCount.isDefined) {
+            graph.resultsCount = setResultsCount
+        }
+
+        graph
     }
 
     def executeSPARQLAskQuery(query: String, groupURI: String): String = {

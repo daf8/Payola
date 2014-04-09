@@ -51,7 +51,7 @@ class JenaGraph(model: Model)
 
     override val edges = toPayolaGraph().edges
     override val vertices = toPayolaGraph().vertices
-    override val resultsCount = toPayolaGraph().resultsCount
+    override val resultsCount = Some(model.size)
 
     def +(otherGraph: Graph): JenaGraph = {
         val model = getModel
@@ -66,8 +66,9 @@ class JenaGraph(model: Model)
         _payolaGraph.get
     }
 
-    private[rdf] def getModel: Model = {
-        model
+   def getModel: Model = {
+        //model
+        ModelFactory.createDefaultModel().add(model)
     }
 
     protected def makeGraph(representation: RdfRepresentation.Type, rdf: String): JenaGraph = {

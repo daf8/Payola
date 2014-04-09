@@ -75,12 +75,12 @@ object PayolaGraph
             }
         }
 
-        new PayolaGraph(literalVertices.toList ++ identifiedVertices.values, edges.toList, None)
+        new PayolaGraph(literalVertices.toList ++ identifiedVertices.values, edges.toList, Some(model.size()))
     }
 }
 
-class PayolaGraph(vertices: immutable.Seq[Vertex], edges: immutable.Seq[Edge], resultCount: Option[Int])
-    extends Graph(vertices, edges, resultCount)
+class PayolaGraph(vertices: immutable.Seq[Vertex], edges: immutable.Seq[Edge], _resultCount: Option[Long])
+    extends Graph(vertices, edges, _resultCount)
 {
     def +(otherGraph: Graph): PayolaGraph = {
         val model = getModel
@@ -88,7 +88,8 @@ class PayolaGraph(vertices: immutable.Seq[Vertex], edges: immutable.Seq[Edge], r
         PayolaGraph(model)
     }
 
-    private[rdf] def getModel: Model = {
+    def getModel: Model = {
+        println("modelstart")
         val model = ModelFactory.createDefaultModel()
 
         // A map of resources identified by their URIs.
@@ -117,7 +118,7 @@ class PayolaGraph(vertices: immutable.Seq[Vertex], edges: immutable.Seq[Edge], r
             }
             model.add(statement)
         }
-
+        println("modelend")
         model
     }
 
