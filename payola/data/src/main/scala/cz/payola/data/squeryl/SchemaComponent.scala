@@ -177,11 +177,25 @@ trait SchemaComponent
             (p, ds) => p.id === ds.pluginId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.DataSource]]s to
-         * a [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]]s
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]] to an
+         * [[cz.payola.data.squeryl.entities.Analysis]]
          */
         lazy val analysesCompatibilityChecks = oneToManyRelation(analyses, compatibilityChecks).via(
             (a, cc) => a.id === cc.analysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
+         */
+        lazy val checkingsOfSourcePluginInstances = oneToManyRelation(pluginInstances, compatibilityChecks).via(
+            (pi, cc) => pi.id === cc.sourcePluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         */
+        lazy val checkingsOfCompatibleDataSources = oneToManyRelation(dataSources, compatibilityChecks).via(
+            (ds, cc) => ds.id === cc.compatibleDataSourceId)
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
@@ -668,6 +682,10 @@ trait SchemaComponent
             // When PluginInstance is deleted, delete all its Source/Target bindings.
             bindingsOfSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             bindingsOfTargetPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+
+            // When PluginInstance is deleted, delete all its Source/Target bindings.
+            checkingsOfSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            checkingsOfCompatibleDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When DataSource is deleted, delete all associated ParameterValues.
             booleanParameterValuesOfDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)

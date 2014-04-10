@@ -81,7 +81,7 @@ trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with S
      * @param checking Plugin instance compatibility with data source
      */
     protected def storeChecking(checking: CompatibilityCheckType) {
-       // _compatibilityChecks += checking
+       _compatibilityChecks += checking
     }
 
     /**
@@ -93,8 +93,8 @@ trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with S
     }
 
     /**
-     * Discards the specified plugin instance from the analysis. Complementary operation to store.
-     * @param binding The plugin instance binding to discard.
+     * Discards the specified compatibility check from the analysis. Complementary operation to store.
+     * @param checking The compatibility check to discard.
      */
     protected def discardChecking(checking: CompatibilityCheckType) {
         _compatibilityChecks -= checking

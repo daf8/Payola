@@ -435,16 +435,22 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
     protected def onAskClicked(view: AnalysisEditorView,
         analysis: Analysis): (EventArgs[PluginInstanceView]) => Unit = {
         evt =>
+            blockPage("Checking data sources with ASK query")
+            AnalysisBuilderData.removeChecks(analysisId,evt.target.getId){
+                r =>
+            }{
+                err =>
+                    fatalErrorHandler(err)
+            }
             val x:Int = allSources.count(_ => true)
             var y:Int = 0
             var z:Int = 0
-            blockPage("Checking data sources with ASK query")
             allSources.map{
-                a =>
-                    AnalysisBuilderData.isExec(analysisId,a.id,evt.target.getId){
-                        c =>
+                s =>
+                    AnalysisBuilderData.checkDataSource(analysisId,s.id,evt.target.getId){
+                        r =>
                             y=y+1
-                            if(c){
+                            if(r){
                                 z=z+1
                             }
                             if (x==y){

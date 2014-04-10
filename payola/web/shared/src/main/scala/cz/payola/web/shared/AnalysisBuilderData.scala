@@ -130,12 +130,17 @@ import cz.payola.domain.entities.plugins.concrete.DataFetcher
         successCallback(sources)
     }
 
-    @async def isExec(analysisId: String, dataSourceId: String, pluginInstanceId: String, user: User = null)(successCallback: (Boolean => Unit))
+    @async def removeChecks(analysisId: String, pluginInstanceId: String, user: User = null)(successCallback: (Boolean => Unit))
+        (failCallback: (Throwable => Unit)) {
+        Payola.model.analysisModel.removeChecking(analysisId, pluginInstanceId)
+        successCallback(true)
+    }
+
+    @async def checkDataSource(analysisId: String, dataSourceId: String, pluginInstanceId: String, user: User = null)(successCallback: (Boolean => Unit))
         (failCallback: (Throwable => Unit)) {
         val dataSource = Payola.model.dataSourceModel.getAccessibleToUserById(Some(user),dataSourceId).getOrElse {
             throw new Exception("DataSource not found.")
         }
-        Payola.model.analysisModel.removeChecking(analysisId, pluginInstanceId, dataSource)
         val query = Payola.model.analysisModel.getAccessibleToUserById(Some(user),analysisId).get.pluginInstances.filter(_.id==pluginInstanceId).head.getStringParameter("ASK query").get
         val copy = dataSource.toInstance
         val result =

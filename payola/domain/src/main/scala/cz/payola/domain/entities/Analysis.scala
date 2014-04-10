@@ -331,19 +331,14 @@ class Analysis(protected var _name: String, protected var _owner: Option[User])
     }
 
     /**
-     * Removes the specified plugin instance binding from the analysis.
-     * @param binding The plugin instance binding to be removed.
-     * @return The removed plugin instance binding.
+     * Removes the specified compatibility check from the analysis.
+     * @param checking The compatibility check to be removed.
+     * @return The removed compatibility check.
      */
     def removeChecking(checking: CompatibilityCheckType): Option[CompatibilityCheckType] = {
         ifContains(compatibilityChecks, checking) {
-            //invalidatePluginInstanceBindings()
             discardChecking(checking)
         }
-    }
-
-    def removeChecking(sourcePluginInstance: PluginInstance, compatibleDataSource: DataSource) {
-        removeChecking(new CompatibilityCheck(sourcePluginInstance, compatibleDataSource))
     }
 
     /**

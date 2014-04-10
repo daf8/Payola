@@ -68,6 +68,7 @@ trait AnalysisRepositoryComponent extends TableRepositoryComponent
                 case a: cz.payola.domain.entities.Analysis => {
                     a.pluginInstances.map(pi => analysis.associatePluginInstance(PluginInstance(pi)))
                     a.pluginInstanceBindings.map(b => analysis.associatePluginInstanceBinding(PluginInstanceBinding(b)))
+                    a.compatibilityChecks.map(c => analysis.associateCompatibilityCheck(CompatibilityCheck(c)))
                     analysis.defaultOntologyCustomization = a.defaultOntologyCustomization
                 }
             }
@@ -110,6 +111,7 @@ trait AnalysisRepositoryComponent extends TableRepositoryComponent
                     loadPluginInstancesByFilter(pi => pi.asInstanceOf[PluginInstance].analysisId === analysis.id)
                         .map(p => (p.id, p.asInstanceOf[PluginInstance])).toMap
                 val instanceBindings = pluginInstanceBindingRepository.selectWhere(b => b.analysisId === analysis.id)
+                val compatibilityChecks = compatibilityCheckRepository.selectWhere(c => c.analysisId === analysis.id)
 
                 // Set plugin instances to bindings
                 instanceBindings.foreach {b =>
@@ -117,9 +119,14 @@ trait AnalysisRepositoryComponent extends TableRepositoryComponent
                     b.targetPluginInstance = pluginInstancesByIds(b.targetPluginInstanceId)
                 }
 
+                compatibilityChecks.foreach {c =>
+                    c.sourcePluginInstance = pluginInstancesByIds(c.sourcePluginInstanceId)
+                }
+
                 // Set loaded plugins, plugin instances and its bindings to analysis, load default customization
                 analysis.pluginInstances = pluginInstancesByIds.values.toSeq
                 analysis.pluginInstanceBindings = instanceBindings
+                analysis.compatibilityChecks = compatibilityChecks
                 analysis.defaultOntologyCustomization = _getDefaultOntologyCustomization(analysis.defaultCustomizationId)
             }
         }

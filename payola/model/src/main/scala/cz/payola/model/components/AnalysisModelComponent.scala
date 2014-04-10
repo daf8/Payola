@@ -75,28 +75,17 @@ trait AnalysisModelComponent extends EntityModelComponent
             }
         }
 
-        def removeChecking(analysisId: String, pluginInstanceId: String, dataSource: DataSource) {
-            //val analysis = analysisRepository.getById(analysisId).getOrElse {
-            //    throw new ModelException("Unknown analysis ID.")
-            //}
-
-            //val compatibilityCheck = analysis.//.find(_.sourcePluginInstance == pluginInstanceId).getOrElse {
-                //throw new ModelException("Unknown plugin instance ID.")
-            //}
-
-            //println(compatibilityCheck)
-
-            //analysis.removePluginInstance(instance)
-
-
+        def removeChecking(analysisId: String, pluginInstanceId: String) {
             getById(analysisId).map {
                 a =>
                     val pluginInstance = a.pluginInstances.find(_.id == pluginInstanceId)
                     if (!pluginInstance.isDefined) {
-                        throw new Exception("Invalid plugin instance or data source.")
+                        throw new Exception("Invalid plugin instance.")
                     }
-                        //println(compatibilityChecks)
-                    //a.removeChecking(pluginInstance.get, dataSource)
+                    a.compatibilityChecks.filter(_.sourcePluginInstance.id == pluginInstanceId).foreach {
+                        b =>
+                            a.removeChecking(b)
+                    }
             }.getOrElse {
                 throw new Exception("Unknown analysis.")
             }
