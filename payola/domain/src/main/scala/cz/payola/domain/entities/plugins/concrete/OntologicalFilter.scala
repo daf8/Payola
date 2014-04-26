@@ -66,6 +66,11 @@ class OntologicalFilter(name: String, inputCount: Int, parameters: immutable.Seq
         getOntologyFilteringSPARQLQuery(ontology).toString
     }
 
+    override def transformerGetQuery(instance: TransformerPluginInstance): String = {
+        val ontology = transformerGetOntologyWithPluginInstance(instance)
+        getOntologyFilteringSPARQLQuery(ontology).toString
+    }
+
     /** Creates a new ontology sourced from the OntologyURLs parameter.
       *
       * @param instance Plugin instance.
@@ -80,6 +85,25 @@ class OntologicalFilter(name: String, inputCount: Int, parameters: immutable.Seq
             // Download and merge all ontologies in parallel.
             //val ontologies = urls.par.map(url => Ontology(new Downloader(url, accept = "application/rdf+xml").result))
             //ontologies.fold(Ontology.empty)(_ + _)
+
+            Ontology(new Downloader(ontologyURLs, accept = "application/rdf+xml").result)
+        }
+    }
+
+    /** Creates a new ontology sourced from the OntologyURLs parameter.
+      *
+      * @param instance Plugin instance.
+      * @return Output graph.
+      */
+    private def transformerGetOntologyWithPluginInstance(instance: TransformerPluginInstance): Ontology = {
+        usingDefined(instance.getStringParameter(OntologicalFilter.ontologyURLsParameter)) { ontologyURLs =>
+        // Assume that there can be more ontology urls separated by a newline.
+        //val urls = ontologyURLs.split("\n").toList.filter(_.nonEmpty)
+        //val ontology = Ontology(new Downloader(url, accept = "application/rdf+xml").result)
+
+        // Download and merge all ontologies in parallel.
+        //val ontologies = urls.par.map(url => Ontology(new Downloader(url, accept = "application/rdf+xml").result))
+        //ontologies.fold(Ontology.empty)(_ + _)
 
             Ontology(new Downloader(ontologyURLs, accept = "application/rdf+xml").result)
         }

@@ -15,10 +15,24 @@ abstract class SparqlQuery(name: String, inputCount: Int, parameters: immutable.
         definedInputs(0).executeSPARQLQuery(query)
     }
 
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        val definedInputs = getDefinedInputs(inputs)
+        val query = transformerGetQuery(instance)
+
+        definedInputs(0).executeSPARQLQuery(query)
+    }
+
     /**
       * Returns the query to execute based on the plugin instance.
       * @param instance The evaluated plugin instance.
       * @return The query.
       */
     def getQuery(instance: PluginInstance): String
+
+    /**
+     * Returns the query to execute based on the plugin instance.
+     * @param instance The evaluated plugin instance.
+     * @return The query.
+     */
+    def transformerGetQuery(instance: TransformerPluginInstance): String
 }

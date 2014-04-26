@@ -10,6 +10,7 @@ import cz.payola.data.squeryl.entities.settings._
 import cz.payola.data.squeryl.entities.plugins._
 import cz.payola.data.squeryl.entities.plugins.parameters._
 import cz.payola.data.squeryl.entities.analyses._
+import cz.payola.data.squeryl.entities.transformers._
 import cz.payola.data.squeryl.entities.privileges.PrivilegeDbRepresentation
 import cz.payola.data.squeryl.entities.Group
 
@@ -49,11 +50,17 @@ trait SchemaComponent
         /**Table of [[cz.payola.data.squeryl.entities.Analysis]] items */
         val analyses = table[Analysis]("analyses")
 
+        /**Table of [[cz.payola.data.squeryl.entities.Transformer]] items */
+        val transformers = table[Transformer]("transformers")
+
         /**Table of [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]]s */
         val plugins = table[PluginDbRepresentation]("plugins")
 
         /**Table of [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]s */
         val pluginInstances = table[PluginInstance]("pluginInstances")
+
+        /**Table of [[cz.payola.data.squeryl.entities.transformers.PluginInstance]]s */
+        val transformerPluginInstances = table[TransformerPluginInstance]("transformerPluginInstances")
 
         /**Table of  ([[cz.payola.data.squeryl.entities.User]]s)s */
         val booleanParameters = table[BooleanParameter]("booleanParameters")
@@ -82,8 +89,14 @@ trait SchemaComponent
         /**Table of [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s */
         val pluginInstanceBindings = table[PluginInstanceBinding]("pluginInstanceBindings")
 
+        /**Table of [[cz.payola.data.squeryl.entities.transformers.TransformerPluginInstanceBinding]]s */
+        val transformerPluginInstanceBindings = table[TransformerPluginInstanceBinding]("transformerPluginInstanceBindings")
+
         /**Table of [[entities.analyses.CompatibilityCheck]]s */
         val compatibilityChecks = table[CompatibilityCheck]("compatibilityCheck")
+
+        /**Table of [[entities.transformers.TransformerCompatibilityCheck]]s */
+        val transformerCompatibilityChecks = table[TransformerCompatibilityCheck]("transformerCompatibilityCheck")
 
         /**Table of [[cz.payola.data.squeryl.entities.analyses.DataSource]]s */
         val dataSources = table[DataSource]("dataSources")
@@ -106,6 +119,9 @@ trait SchemaComponent
         /**Table of [[cz.payola.data.squeryl.entities.AnalysisResult]]s */
         val analysesResults = table[AnalysisResult]("analysesResults")
 
+        /**Table of [[cz.payola.data.squeryl.entities.TransformerResult]]s */
+        val transformersResults = table[TransformerResult]("transformersResults")
+
         /**
          * Relation that associates members ([[cz.payola.data.squeryl.entities.User]]s)
          * to [[cz.payola.data.squeryl.entities.Group]]s
@@ -126,6 +142,13 @@ trait SchemaComponent
          */
         lazy val analysisOwnership = oneToManyRelation(users, analyses).via(
             (u, a) => Option(u.id) === a.ownerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Transformer]] to its owner
+         * ([[cz.payola.data.squeryl.entities.User]]s)
+         */
+        lazy val transformerOwnership = oneToManyRelation(users, transformers).via(
+            (u, t) => Option(u.id) === t.ownerId)
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.settings.Customization]] to its owner
@@ -163,11 +186,25 @@ trait SchemaComponent
             (p, pi) => p.id === pi.pluginId)
 
         /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]] to a
+         * [[cz.payola.data.squeryl.entities.PluginDbRepresentation]]
+         */
+        lazy val pluginsTransformerPluginInstances = oneToManyRelation(plugins, transformerPluginInstances).via(
+            (p, pi) => p.id === pi.pluginId)
+
+        /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]] to an
          * [[cz.payola.data.squeryl.entities.Analysis]]
          */
         lazy val analysesPluginInstances = oneToManyRelation(analyses, pluginInstances).via(
             (a, pi) => a.id === pi.analysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]] to an
+         * [[cz.payola.data.squeryl.entities.Transformer]]
+         */
+        lazy val transformersPluginInstances = oneToManyRelation(transformers, transformerPluginInstances).via(
+            (t, pi) => t.id === pi.transformerId)
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.DataSource]]s to
@@ -184,10 +221,24 @@ trait SchemaComponent
             (a, cc) => a.id === cc.analysisId)
 
         /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]] to an
+         * [[cz.payola.data.squeryl.entities.Transformer]]
+         */
+        lazy val transformersCompatibilityChecks = oneToManyRelation(transformers, transformerCompatibilityChecks).via(
+            (t, cc) => t.id === cc.transformerId)
+
+        /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
          * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
          */
         lazy val checkingsOfSourcePluginInstances = oneToManyRelation(pluginInstances, compatibilityChecks).via(
+            (pi, cc) => pi.id === cc.sourcePluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
+         */
+        lazy val checkingsOfSourceTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, transformerCompatibilityChecks).via(
             (pi, cc) => pi.id === cc.sourcePluginInstanceId)
 
         /**
@@ -206,6 +257,13 @@ trait SchemaComponent
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.Transformer]]
+         */
+        lazy val transformersPluginInstancesBindings = oneToManyRelation(transformers, transformerPluginInstanceBindings).via(
+            (t, pib) => t.id === pib.transformerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
          * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]] as a source
          */
         lazy val bindingsOfSourcePluginInstances = oneToManyRelation(pluginInstances, pluginInstanceBindings).via(
@@ -216,6 +274,21 @@ trait SchemaComponent
          * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]] as a target
          */
         lazy val bindingsOfTargetPluginInstances = oneToManyRelation(pluginInstances, pluginInstanceBindings).via(
+            (pi, b) => pi.id === b.targetPluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]] as a source
+         */
+
+        lazy val bindingsOfTransformerSourcePluginInstances = oneToManyRelation(transformerPluginInstances, transformerPluginInstanceBindings).via(
+            (pi, b) => pi.id === b.sourcePluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]] as a target
+         */
+        lazy val bindingsOfTransformerTargetPluginInstances = oneToManyRelation(transformerPluginInstances, transformerPluginInstanceBindings).via(
             (pi, b) => pi.id === b.targetPluginInstanceId)
 
         /**
@@ -305,6 +378,35 @@ trait SchemaComponent
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.plugins.parameters.BooleanParameterValues]]s
+         * to a [[cz.payola.data.squeryl.entities.plugins.parameters.BooleanParameter]]
+         */
+        lazy val booleanParameterValuesOfTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, booleanParameterValues)
+            .via(
+                (pi, bpv) => Option(pi.id) === bpv.transformerPluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.plugins.parameters.FloatParameterValue]]s to a
+         * [[cz.payola.data.squeryl.entities.plugins.parameters.FloatParameter]]
+         */
+        lazy val floatParameterValuesOfTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, floatParameterValues).via(
+            (pi, fpv) => Option(pi.id) === fpv.transformerPluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.plugins.parameters.IntParameterValue]]s to an
+         * [[cz.payola.data.squeryl.entities.plugins.parameters.IntParameter]]
+         */
+        lazy val intParameterValuesOfTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, intParameterValues).via(
+            (pi, ipv) => Option(pi.id) === ipv.transformerPluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.plugins.parameters.StringParameterValues]]s to
+         * a [[cz.payola.data.squeryl.entities.plugins.parameters.StringParameter]]
+         */
+        lazy val stringParameterValuesOfTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, stringParameterValues).via(
+            (pi, spv) => Option(pi.id) === spv.transformerPluginInstanceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.plugins.parameters.BooleanParameterValues]]s
          * to a [[cz.payola.data.squeryl.entities.analyses.DataSource]]
          */
         lazy val booleanParameterValuesOfDataSources = oneToManyRelation(dataSources, booleanParameterValues).via(
@@ -339,6 +441,13 @@ trait SchemaComponent
             (o, a) => a.defaultCustomizationId === Some(o.id))
 
         /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.settings.Customization]]s
+         * to a [[cz.payola.data.squeryl.entities.Analysis]]
+         */
+        lazy val customizationsOfTransformers = oneToManyRelation(customizations, transformers).via(
+            (o, a) => a.defaultCustomizationId === Some(o.id))
+
+        /**
          * Relation that associates [[cz.payola.data.squeryl.entities.settings.ClassCustomization]]s
          * to a [[cz.payola.data.squeryl.entities.settings.Customization]]
          */
@@ -366,6 +475,9 @@ trait SchemaComponent
             factoryFor(analyses) is {
                 new Analysis("", "", None, false, "", None, true)
             },
+            factoryFor(transformers) is {
+                new Transformer("", "", None, false, "", None, true)
+            },
             factoryFor(plugins) is {
                 new PluginDbRepresentation("", "", "", 0, None, false)
             },
@@ -377,6 +489,15 @@ trait SchemaComponent
             },
             factoryFor(compatibilityChecks) is {
                 new CompatibilityCheck("", null, null)
+            },
+            factoryFor(transformerPluginInstances) is {
+                new TransformerPluginInstance("", null, Nil, "", false)
+            },
+            factoryFor(transformerPluginInstanceBindings) is {
+                new TransformerPluginInstanceBinding("", null, null, 0)
+            },
+            factoryFor(transformerCompatibilityChecks) is {
+                new TransformerCompatibilityCheck("", null, null)
             },
             factoryFor(booleanParameters) is {
                 new BooleanParameter("", "", false, None)
@@ -422,6 +543,9 @@ trait SchemaComponent
             },
             factoryFor(analysesResults) is {
                 new AnalysisResult("", None, "", 0, new java.sql.Timestamp(System.currentTimeMillis()))
+            },
+            factoryFor(transformersResults) is {
+                new TransformerResult("", None, "", 0, new java.sql.Timestamp(System.currentTimeMillis()))
             }
         )
 
@@ -489,11 +613,40 @@ trait SchemaComponent
                     columns(checking.compatibleDataSourceId, checking.sourcePluginInstanceId) are (unique)
                 ))
 
+            on(transformerPluginInstances)(instance =>
+                declare(
+                    instance.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    instance._desc is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    instance.description is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    instance.transformerId is (dbType(COLUMN_TYPE_ID)),
+                    instance.pluginId is (dbType(COLUMN_TYPE_ID))
+                ))
+
+            on(transformerPluginInstanceBindings)(binding =>
+                declare(
+                    binding.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    binding.targetPluginInstanceId is (dbType(COLUMN_TYPE_ID)),
+                    binding.sourcePluginInstanceId is (dbType(COLUMN_TYPE_ID)),
+                    binding.transformerId is (dbType(COLUMN_TYPE_ID)),
+                    columns(binding.targetPluginInstanceId, binding.inputIndex) are (unique),
+                    columns(binding.sourcePluginInstanceId, binding.transformerId) are (unique)
+                ))
+
+            on(transformerCompatibilityChecks)(checking =>
+                declare(
+                    checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    checking.compatibleDataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    checking.sourcePluginInstanceId is (dbType(COLUMN_TYPE_ID)),
+                    checking.transformerId is (dbType(COLUMN_TYPE_ID)),
+                    columns(checking.compatibleDataSourceId, checking.sourcePluginInstanceId) are (unique)
+                ))
+
             on(booleanParameterValues)(param =>
                 declare(
                     param.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
-                    param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),
+                    param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     param.dataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    param.transformerPluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.parameterId is (dbType(COLUMN_TYPE_ID)),
                     param.value is (dbType(COLUMN_TYPE_VALUE))
                 ))
@@ -503,6 +656,7 @@ trait SchemaComponent
                     param.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
                     param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.dataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    param.transformerPluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.parameterId is (dbType(COLUMN_TYPE_ID)),
                     param.value is (dbType(COLUMN_TYPE_VALUE))
                 ))
@@ -512,6 +666,7 @@ trait SchemaComponent
                     param.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
                     param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.dataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    param.transformerPluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.parameterId is (dbType(COLUMN_TYPE_ID)),
                     param.value is (dbType(COLUMN_TYPE_VALUE))
                 ))
@@ -521,6 +676,7 @@ trait SchemaComponent
                     param.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
                     param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.dataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    param.transformerPluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.parameterId is (dbType(COLUMN_TYPE_ID)),
                     param.value is (dbType(COLUMN_TYPE_VALUE))
                 ))
@@ -596,6 +752,21 @@ trait SchemaComponent
                     columns(analysis.name, analysis.ownerId) are (unique)
                 ))
 
+            on(transformers)(transformer =>
+                declare(
+                    transformer.id is(primaryKey, dbType(COLUMN_TYPE_ID)),
+                    transformer.name is (dbType(COLUMN_TYPE_NAME)),
+                    transformer.ownerId is (dbType(COLUMN_TYPE_ID)),
+                    transformer.defaultCustomizationId is (dbType(COLUMN_TYPE_ID)),
+                    transformer._desc is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    transformer.description is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    transformer.ttl is (dbType(COLUMN_TYPE_TTL)),
+                    transformer.checked is (dbType(COLUMN_TYPE_CHECKED)),
+                    transformer.lastCheck is (dbType(COLUMN_TYPE_LAST_CHECK)),
+                    transformer.token is (dbType(COLUMN_TYPE_TOKEN)),
+                    columns(transformer.name, transformer.ownerId) are (unique)
+                ))
+
             on(privileges)(p =>
                 declare(
                     p.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
@@ -652,14 +823,27 @@ trait SchemaComponent
                     analysisRes.evaluationId is(dbType(COLUMN_TYPE_ID))
                 ))
 
+            on(transformersResults)(transformerRes =>
+                declare(
+                    transformerRes.transformerId is(dbType(COLUMN_TYPE_ID)),
+                    transformerRes.evaluationId is(dbType(COLUMN_TYPE_ID))
+                ))
+
+
             // When a PluginDbRepresentation is deleted, all of the its instances and data sources will get deleted.
             pluginsPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            pluginsTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             pluginsDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
-            // When an Analysis is deleted, all of the its plugin instances will get deleted.
+            // When an Analysis is deleted, all of the its plugin instances and compatibility checks will get deleted.
             analysesPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             analysesCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
             analysesPluginInstancesBindings.foreignKeyDeclaration.constrainReference(onDelete cascade)
+
+            // When a Transformer is deleted, all of the its plugin instances and compatibility checks will get deleted.
+            transformersPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            transformersCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            transformersPluginInstancesBindings.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When a Parameter is deleted, all of the its parameterValues will get deleted.
             valuesOfBooleanParameters.foreignKeyDeclaration.constrainReference(onDelete cascade)
@@ -679,12 +863,21 @@ trait SchemaComponent
             intParameterValuesOfPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             stringParameterValuesOfPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
+            // When a TransformerPluginInstance is deleted, all of the its ParameterInstances will get deleted.
+            booleanParameterValuesOfTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            floatParameterValuesOfTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            intParameterValuesOfTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            stringParameterValuesOfTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+
             // When PluginInstance is deleted, delete all its Source/Target bindings.
             bindingsOfSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             bindingsOfTargetPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTransformerSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTransformerTargetPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When PluginInstance is deleted, delete all its Source/Target bindings.
             checkingsOfSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            checkingsOfSourceTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             checkingsOfCompatibleDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When DataSource is deleted, delete all associated ParameterValues.
@@ -701,6 +894,7 @@ trait SchemaComponent
             groupOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
             customizationOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
             analysisOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            transformerOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
             dataSourceOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
             pluginOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
 

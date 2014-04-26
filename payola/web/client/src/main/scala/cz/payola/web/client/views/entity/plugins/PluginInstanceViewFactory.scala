@@ -1,8 +1,9 @@
 package cz.payola.web.client.views.entity.plugins
 
 import cz.payola.common.entities.plugins.PluginInstance
+import cz.payola.common.entities.plugins.TransformerPluginInstance
 import collection.Seq
-import cz.payola.common.entities.Analysis
+import cz.payola.common.entities._
 import s2js.compiler.javascript
 import s2js.runtime.shared.DependencyProvider
 import s2js.runtime.client.scala.collection.mutable.HashMap
@@ -41,9 +42,19 @@ class PluginInstanceViewFactory(prefixApplier: PrefixApplier)
         predecessors: Seq[PluginInstanceView] = List()): EditablePluginInstanceView = null
 
     @javascript(
+        """ return eval("new cz.payola.web.client.views.entity.plugins.custom."+name+"EditableTransformerPluginInstanceView(transformer, pluginInst, predecessors)"); """)
+    private def transformerCreateEditableOverride(name: String, transformer: Transformer, pluginInst: TransformerPluginInstance,
+        predecessors: Seq[TransformerPluginInstanceView] = List()): EditableTransformerPluginInstanceView = null
+
+    @javascript(
         """ return eval("new cz.payola.web.client.views.entity.plugins.custom."+name+"PluginInstanceView(pluginInst, predecessors)"); """)
     private def createOverride(name: String, pluginInst: PluginInstance,
         predecessors: Seq[PluginInstanceView] = List()): ReadOnlyPluginInstanceView = null
+
+    @javascript(
+        """ return eval("new cz.payola.web.client.views.entity.plugins.custom."+name+"TransformerPluginInstanceView(pluginInst, predecessors)"); """)
+    private def transformerCreateOverride(name: String, pluginInst: TransformerPluginInstance,
+        predecessors: Seq[TransformerPluginInstanceView] = List()): ReadOnlyTransformerPluginInstanceView = null
 
     def createEditable(analysis: Analysis, pluginInstance: PluginInstance,
         predecessors: Seq[PluginInstanceView] = List()): EditablePluginInstanceView = {
@@ -57,6 +68,18 @@ class PluginInstanceViewFactory(prefixApplier: PrefixApplier)
         }
     }
 
+    def transformerCreateEditable(transformer: Transformer, pluginInstance: TransformerPluginInstance,
+        predecessors: Seq[TransformerPluginInstanceView] = List()): EditableTransformerPluginInstanceView = {
+
+        load("cz.payola.web.client.views.entity.plugins.custom."+pluginInstance.plugin.originalClassName+"EditableTransformerPluginInstanceView")
+
+        if (hasEditableOverride(pluginInstance.plugin.originalClassName)) {
+            transformerCreateEditableOverride(pluginInstance.plugin.originalClassName, transformer, pluginInstance, predecessors)
+        } else {
+            new EditableTransformerPluginInstanceView(pluginInstance, predecessors, prefixApplier)
+        }
+    }
+
     def create(pluginInstance: PluginInstance, predecessors: Seq[PluginInstanceView] = List()): ReadOnlyPluginInstanceView = {
 
         load("cz.payola.web.client.views.entity.plugins.custom."+pluginInstance.plugin.originalClassName+"PluginInstanceView")
@@ -65,6 +88,17 @@ class PluginInstanceViewFactory(prefixApplier: PrefixApplier)
             createOverride(pluginInstance.plugin.originalClassName, pluginInstance, predecessors)
         } else {
             new ReadOnlyPluginInstanceView(pluginInstance, predecessors, prefixApplier)
+        }
+    }
+
+    def transformerCreate(pluginInstance: TransformerPluginInstance, predecessors: Seq[TransformerPluginInstanceView] = List()): ReadOnlyTransformerPluginInstanceView = {
+
+        load("cz.payola.web.client.views.entity.plugins.custom."+pluginInstance.plugin.originalClassName+"TransformerPluginInstanceView")
+
+        if (hasOverride(pluginInstance.plugin.originalClassName)){
+            transformerCreateOverride(pluginInstance.plugin.originalClassName, pluginInstance, predecessors)
+        } else {
+            new ReadOnlyTransformerPluginInstanceView(pluginInstance, predecessors, prefixApplier)
         }
     }
 

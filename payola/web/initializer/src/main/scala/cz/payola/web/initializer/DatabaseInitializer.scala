@@ -236,6 +236,10 @@ object DatabaseInitializer extends App
         }
 
         model.customizationRepository.persist(customization)
+
+        val transformer = new cz.payola.domain.entities.Transformer("Transformer", Some(admin))
+        transformer.isPublic = true
+        val transformerPersisted = model.transformerRepository.persist(transformer)
     }
 
     /*

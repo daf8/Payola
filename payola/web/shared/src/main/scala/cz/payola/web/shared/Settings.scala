@@ -21,6 +21,10 @@ import s2js.compiler.remote
 
     val maxStoredAnalysesPerUser = config.getInt("virtuoso.astore.capacity.peruser")
 
+    val maxStoredTransformers = config.getInt("virtuoso.astore.capacity.total")
+
+    val maxStoredTransformersPerUser = config.getInt("virtuoso.astore.capacity.peruser")
+
     val databaseLocation = config.getString("database.location")
 
     val databaseUser = config.getString("database.user")

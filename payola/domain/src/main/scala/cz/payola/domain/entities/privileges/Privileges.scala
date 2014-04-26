@@ -11,6 +11,11 @@ class AccessAnalysisPrivilege(granter: User, grantee: Entity with PrivilegeableE
     extends Privilege[Analysis](granter, grantee, analysis, id)
     with cz.payola.common.entities.privileges.AccessAnalysisPrivilege
 
+class AccessTransformerPrivilege(granter: User, grantee: Entity with PrivilegeableEntity, transformer: Transformer,
+    id: String = IDGenerator.newId)
+    extends Privilege[Transformer](granter, grantee, transformer, id)
+    with cz.payola.common.entities.privileges.AccessTransformerPrivilege
+
 class AccessDataSourcePrivilege(granter: User, grantee: Entity with PrivilegeableEntity, dataSource: DataSource,
     id: String = IDGenerator.newId)
     extends Privilege[DataSource](granter, grantee, dataSource, id)

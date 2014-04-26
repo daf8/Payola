@@ -23,6 +23,10 @@ import cz.payola.domain.entities.plugins.compiler.PluginCompiler
 
         override val maxStoredAnalysesPerUser: Long = settings.maxStoredAnalysesPerUser
 
+        override val maxStoredTransformers: Long = settings.maxStoredTransformers
+
+        override val maxStoredTransformersPerUser: Long = settings.maxStoredTransformersPerUser
+
         lazy val schema = new Schema(
             settings.databaseLocation,
             settings.databaseUser,

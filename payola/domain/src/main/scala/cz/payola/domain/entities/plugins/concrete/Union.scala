@@ -17,4 +17,9 @@ class Union(name: String, inputCount: Int, parameters: immutable.Seq[Parameter[_
         // Currently the Union behaves as a strict union which means that all inputs have to be defined.
         getDefinedInputs(inputs).reduce(_ + _)
     }
+
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        // Currently the Union behaves as a strict union which means that all inputs have to be defined.
+        getDefinedInputs(inputs).reduce(_ + _)
+    }
 }

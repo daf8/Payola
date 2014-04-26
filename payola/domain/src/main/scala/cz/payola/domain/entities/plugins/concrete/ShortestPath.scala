@@ -133,6 +133,31 @@ class ShortestPath(name: String, inputCount: Int, parameters: immutable.Seq[Para
         }
     }
 
+    /** Creates a new instance of a graph that contains only vertices along the shortest path from
+      * OriginURI to DestinationURI.
+      *
+      * @param instance The corresponding instance.
+      * @param inputs The input graphs.
+      * @param progressReporter A method that can be used to report plugin evaluation progress (which has to be within
+      *                         the (0.0, 1.0] interval).
+      * @return The output graph.
+      */
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: collection.IndexedSeq[Option[Graph]],
+        progressReporter: Double => Unit) = {
+
+        usingDefined(inputs(0)) { g =>
+            val origin = transformerGetOriginURI(instance)
+            val destination = transformerGetDestinationURI(instance)
+
+            if (g.containsVertexWithURI(origin) && g.containsVertexWithURI(destination)) {
+                createGraphWithShortestPath(g, origin, destination)
+            } else {
+                // Either origin or destination isn't present in the graph => return empty graph
+                JenaGraph.empty
+            }
+        }
+    }
+
     /** Gets the value of destination URI parameter instance.
       *
       * @param instance Parameter instance.
@@ -144,12 +169,34 @@ class ShortestPath(name: String, inputCount: Int, parameters: immutable.Seq[Para
         origin.get
     }
 
+    /** Gets the value of destination URI parameter instance.
+      *
+      * @param instance Parameter instance.
+      * @return Destination URI.
+      */
+    def transformerGetDestinationURI(instance: TransformerPluginInstance): String = {
+        val origin = instance.getStringParameter(ShortestPath.destinationURIParameter)
+        assert(origin.isDefined, "DestinationURI parameter must be defined")
+        origin.get
+    }
+
     /** Gets the value of origin URI parameter instance.
       *
       * @param instance Parameter instance.
       * @return OriginURI.
       */
     def getOriginURI(instance: PluginInstance): String = {
+        val origin = instance.getStringParameter(ShortestPath.originURIParameter)
+        assert(origin.isDefined, "OriginURI parameter must be defined")
+        origin.get
+    }
+
+    /** Gets the value of origin URI parameter instance.
+      *
+      * @param instance Parameter instance.
+      * @return OriginURI.
+      */
+    def transformerGetOriginURI(instance: TransformerPluginInstance): String = {
         val origin = instance.getStringParameter(ShortestPath.originURIParameter)
         assert(origin.isDefined, "OriginURI parameter must be defined")
         origin.get

@@ -6,6 +6,7 @@ import cz.payola.common.entities._
 import cz.payola.common.entities.plugins.parameters._
 import cz.payola.common.entities.plugins._
 import cz.payola.common.entities.analyses.PluginInstanceBinding
+import cz.payola.common.entities.transformers.TransformerPluginInstanceBinding
 import cz.payola.common.entities.settings._
 import cz.payola.scala2json.rules.BasicSerializationRule
 import cz.payola.scala2json.classes.SimpleSerializationClass
@@ -37,11 +38,27 @@ class RPCSerializer extends JSONSerializer
     )
     this.addSerializationRule(analysisClass,analysisRule)
 
+    val transformerClass = new SimpleSerializationClass(classOf[Transformer])
+    val transformerRule = new BasicSerializationRule(
+        Some(classOf[Transformer]),
+        Some(List(
+            "_pluginInstances",
+            "_pluginInstanceBindings")
+        )
+    )
+    this.addSerializationRule(transformerClass,transformerRule)
+
     val analysisPluginInstances = new CustomValueSerializationRule[Analysis]("_pluginInstances", (serializer, analysis) => analysis.pluginInstances)
     this.addSerializationRule(analysisClass, analysisPluginInstances)
 
+    val transformerPluginInstances = new CustomValueSerializationRule[Transformer]("_pluginInstances", (serializer, transformer) => transformer.pluginInstances)
+    this.addSerializationRule(transformerClass, transformerPluginInstances)
+
     val analysisPluginInstanceBindings = new CustomValueSerializationRule[Analysis]("_pluginInstanceBindings", (serializer, analysis) => analysis.pluginInstanceBindings)
     this.addSerializationRule(analysisClass, analysisPluginInstanceBindings)
+
+    val transformerPluginInstanceBindings = new CustomValueSerializationRule[Transformer]("_pluginInstanceBindings", (serializer, transformer) => transformer.pluginInstanceBindings)
+    this.addSerializationRule(transformerClass, transformerPluginInstanceBindings)
 
     val dataSourceClass = new SimpleSerializationClass(classOf[DataSource])
     val dataSourceRule = new BasicSerializationRule(Some(classOf[DataSource]))
@@ -68,6 +85,25 @@ class RPCSerializer extends JSONSerializer
     this.addSerializationRule(pluginInstanceBindingClass, pluginInstanceBindingRuleSource)
     val pluginInstanceBindingRuleTarget = new CustomValueSerializationRule[PluginInstanceBinding]("_sourcePluginInstance", (serializer, b) => b.sourcePluginInstance)
     this.addSerializationRule(pluginInstanceBindingClass, pluginInstanceBindingRuleTarget)
+
+    val transformerPluginInstanceClass = new SimpleSerializationClass(classOf[TransformerPluginInstance])
+    val transformerPluginInstanceRule = new BasicSerializationRule(
+        Some(classOf[TransformerPluginInstance]),
+        Some(List("_plugin"))
+    )
+    this.addSerializationRule(transformerPluginInstanceClass, transformerPluginInstanceRule)
+
+    val transformerPluginInstancePlugin = new CustomValueSerializationRule[TransformerPluginInstance]("_plugin", (serializer, instance) => instance.plugin)
+    this.addSerializationRule(transformerPluginInstanceClass, transformerPluginInstancePlugin)
+
+    val transformerPluginInstanceBindingClass = new SimpleSerializationClass(classOf[TransformerPluginInstanceBinding])
+    val transformerPluginInstanceBindingRule = new BasicSerializationRule(Some(classOf[TransformerPluginInstanceBinding]))
+    this.addSerializationRule(transformerPluginInstanceBindingClass, transformerPluginInstanceBindingRule)
+
+    val transformerPluginInstanceBindingRuleSource = new CustomValueSerializationRule[TransformerPluginInstanceBinding]("_targetPluginInstance", (serializer, b) => b.targetPluginInstance)
+    this.addSerializationRule(transformerPluginInstanceBindingClass, transformerPluginInstanceBindingRuleSource)
+    val transformerPluginInstanceBindingRuleTarget = new CustomValueSerializationRule[TransformerPluginInstanceBinding]("_sourcePluginInstance", (serializer, b) => b.sourcePluginInstance)
+    this.addSerializationRule(transformerPluginInstanceBindingClass, transformerPluginInstanceBindingRuleTarget)
 
     val pluginClass = new SimpleSerializationClass(classOf[Plugin])
     val pluginRule = new BasicSerializationRule(Some(classOf[Plugin]))

@@ -1,0 +1,33 @@
+@(user: Option[cz.payola.domain.entities.User], transformer: cz.payola.domain.entities.Transformer, canTakeOwnership: Boolean)
+
+@main(user, "Transformer "+transformer.name+" :: Payola!") {
+<div class="container-fluid">
+    <div class="pull-right">
+        <div class="btn-group">
+            @if(transformer.owner != None && transformer.owner == user) {
+                <a href="@routes.Transformer.edit(transformer.id)" class="btn btn-default btn-small"><i class="glyphicon glyphicon-pencil"></i> Edit</a>
+            }
+            @if(canTakeOwnership){
+                <a href="@routes.Transformer.takeOwnership(transformer.id)" class="btn btn-default btn-small"><i class="glyphicon glyphicon-magnet"></i> Take ownership</a>
+            }
+            @if(user.isDefined){
+                <a href="@routes.Transformer.cloneAndEdit(transformer.id)" class="btn btn-default btn-small"><i class="glyphicon glyphicon-retweet"></i> Clone &amp; edit</a>
+            }
+        </div>
+    </div>
+    <h1>
+        Detail of transformer: @transformer.name
+    </h1>
+    <p>@transformer.description</p>
+
+    <div class="row" id="client-canvas">
+
+
+    </div>
+</div><!--/.fluid-container-->
+
+<script src="/javaScriptPackage/cz.payola.web.client.presenters.entity.transformer.TransformerRunner" type="text/javascript"></script>
+<script type="text/javascript">
+    new cz.payola.web.client.presenters.entity.transformer.TransformerRunner("client-canvas", "@transformer.id").initialize();
+</script>
+}

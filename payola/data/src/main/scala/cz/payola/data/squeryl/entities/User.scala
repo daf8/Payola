@@ -45,6 +45,10 @@ class User(override val id: String, name: String, pwd: String, mail: String)
 
     private lazy val _ownedAnalysesQuery = context.schema.analysisOwnership.left(this)
 
+    _ownedTransformers = null
+
+    private lazy val _ownedTransformersQuery = context.schema.transformerOwnership.left(this)
+
     _ownedPlugins = null
 
     private lazy val _ownedPluginsQuery = context.schema.pluginOwnership.left(this)
@@ -83,6 +87,18 @@ class User(override val id: String, name: String, pwd: String, mail: String)
         }
 
         _ownedAnalyses.toList
+    }
+
+    override def ownedTransformers: immutable.Seq[TransformerType] = {
+        if (_ownedTransformers == null) {
+            wrapInTransaction {
+                _ownedTransformers = mutable.ArrayBuffer(
+                    context.transformerRepository.getAllByOwnerId(Some(id)): _*
+                )
+            }
+        }
+
+        _ownedTransformers.toList
     }
 
     override def ownedDataSources: immutable.Seq[DataSourceType] = {
@@ -137,6 +153,10 @@ class User(override val id: String, name: String, pwd: String, mail: String)
         super.storeOwnedAnalysis(context.schema.associate(Analysis(analysis), _ownedAnalysesQuery))
     }
 
+    override protected def storeOwnedTransformer(transformer: User#TransformerType) {
+        super.storeOwnedTransformer(context.schema.associate(Transformer(transformer), _ownedTransformersQuery))
+    }
+
     override protected def storeOwnedGroup(group: User#GroupType) {
         super.storeOwnedGroup(context.schema.associate(Group(group), _ownedGroupsQuery))
     }
@@ -167,6 +187,11 @@ class User(override val id: String, name: String, pwd: String, mail: String)
     override protected def discardOwnedAnalysis(analysis: User#AnalysisType) {
         context.analysisRepository.removeById(analysis.id)
         super.discardOwnedAnalysis(analysis)
+    }
+
+    override protected def discardOwnedTransformer(transformer: User#TransformerType) {
+        context.transformerRepository.removeById(transformer.id)
+        super.discardOwnedTransformer(transformer)
     }
 
     override protected def discardOwnedGroup(group: User#GroupType) {

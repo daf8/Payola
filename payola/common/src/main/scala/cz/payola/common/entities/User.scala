@@ -17,6 +17,9 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     /** Type of the analyses that the user can own. */
     type AnalysisType <: Analysis
 
+    /** Type of the analyses that the user can own. */
+    type TransformerType <: Transformer
+
     /** Type of the data sources that the user can own. */
     type DataSourceType <: DataSource
 
@@ -36,6 +39,8 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     protected var _ownedGroups = mutable.ArrayBuffer[GroupType]()
 
     protected var _ownedAnalyses = mutable.ArrayBuffer[AnalysisType]()
+
+    protected var _ownedTransformers = mutable.ArrayBuffer[TransformerType]()
 
     protected var _ownedDataSources = mutable.ArrayBuffer[DataSourceType]()
 
@@ -73,6 +78,9 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     /** The analyses that are owned by the user. */
     def ownedAnalyses: immutable.Seq[AnalysisType] = _ownedAnalyses.toList
 
+    /** The analyses that are owned by the user. */
+    def ownedTransformers: immutable.Seq[TransformerType] = _ownedTransformers.toList
+
     /** The data sources that are owned by the user. */
     def ownedDataSources: immutable.Seq[DataSourceType] = _ownedDataSources.toList
 
@@ -99,6 +107,22 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
       */
     protected def discardOwnedAnalysis(analysis: AnalysisType) {
         _ownedAnalyses -= analysis
+    }
+
+    /**
+     * Stores the specified transformer to the users owned analyses.
+     * @param transformer The transformer to store.
+     */
+    protected def storeOwnedTransformer(transformer: TransformerType) {
+        _ownedTransformers += transformer
+    }
+
+    /**
+     * Discards the specified transformer from the users owned analyses. Complementary operation to store.
+     * @param transformer The transformer to discard.
+     */
+    protected def discardOwnedTransformer(transformer: TransformerType) {
+        _ownedTransformers -= transformer
     }
 
     /**

@@ -16,12 +16,15 @@ trait SquerylDataContextComponent
     with GroupRepositoryComponent
     with PrivilegeRepositoryComponent
     with PluginInstanceRepositoryComponent
+    with TransformerPluginInstanceRepositoryComponent
     with AnalysisRepositoryComponent
+    with TransformerRepositoryComponent
     with DataSourceRepositoryComponent
     with PluginRepositoryComponent
     with CustomizationRepositoryComponent
     with PrefixRepositoryComponent
     with AnalysisResultRepositoryComponent
+    with TransformerResultRepositoryComponent
 {
     self: RdfStorageComponent with PluginCompilerComponent =>
     /**

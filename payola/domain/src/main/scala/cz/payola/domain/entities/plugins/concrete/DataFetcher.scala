@@ -30,6 +30,12 @@ abstract class DataFetcher(name: String, inputCount: Int, parameters: immutable.
         evaluateWithQuery(instance, ConstructQuery(GraphPattern(list)).toString, progressReporter)
     }
 
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        // changed to be a construct query in order to enable optimalizations [Jiri Helmich]
+        val list = List(TriplePattern(new Variable("s"),new Variable("p"),new Variable("o")))
+        transformerEvaluateWithQuery(instance, ConstructQuery(GraphPattern(list)).toString, progressReporter)
+    }
+
     /**
       * Evaluates the plugin.
       * @param instance The corresponding instance.
@@ -43,6 +49,18 @@ abstract class DataFetcher(name: String, inputCount: Int, parameters: immutable.
     }
 
     /**
+     * Evaluates the plugin.
+     * @param instance The corresponding instance.
+     * @param query The query used to filter data from the data source.
+     * @param progressReporter A method that can be used to report plugin evaluation progress (which has to be within
+     *                         the [0.0, 1.0] interval).
+     * @return The output graph.
+     */
+    def transformerEvaluateWithQuery(instance: TransformerPluginInstance, query: String, progressReporter: Double => Unit): Graph = {
+        transformerExecuteQuery(instance, query)
+    }
+
+    /**
       * Executes the specified query.
       * @param instance The corresponding instance.
       * @param query The query to execute.
@@ -50,9 +68,21 @@ abstract class DataFetcher(name: String, inputCount: Int, parameters: immutable.
       */
     def executeQuery(instance: PluginInstance, query: String): Graph
 
+    /**
+     * Executes the specified query.
+     * @param instance The corresponding instance.
+     * @param query The query to execute.
+     * @return The result of the query.
+     */
+    def transformerExecuteQuery(instance: TransformerPluginInstance, query: String): Graph
+
     def askQuery(instance: PluginInstance): Boolean
 
+    def transformerAskQuery(instance: TransformerPluginInstance): Boolean
+
     def askQuerySource(instance: PluginInstance, query: String): Boolean
+
+    def transformerAskQuerySource(instance: TransformerPluginInstance, query: String): Boolean
 
     /**
       * Returns the first available triple.
@@ -61,6 +91,15 @@ abstract class DataFetcher(name: String, inputCount: Int, parameters: immutable.
       */
     def getFirstTriple(instance: PluginInstance): Graph = {
         executeQuery(instance, selectFirstTripleQuery)
+    }
+
+    /**
+     * Returns the first available triple.
+     * @param instance The corresponding instance.
+     * @return The triple represented as a graph.
+     */
+    def transformerGetFirstTriple(instance: TransformerPluginInstance): Graph = {
+        transformerExecuteQuery(instance, selectFirstTripleQuery)
     }
 
     /**
@@ -87,6 +126,35 @@ abstract class DataFetcher(name: String, inputCount: Int, parameters: immutable.
             )
 
             patterns.par.map(p => executeQuery(instance, SelectCountQuery(p).toString)).reduce(_ + _)
+        } else {
+            JenaGraph.empty
+        }
+    }
+
+    /**
+     * Returns neighbourhood of the specified vertex.
+     * @param instance The corresponding instance.
+     * @param vertexURI URI of the vertex whose neighbourhood should be returned.
+     * @return The neighbourhood graph.
+     */
+    def transformerGetNeighbourhood(instance: TransformerPluginInstance, vertexURI: String): Graph = {
+
+        val uri = vertexURI.trim
+
+        if (uri.nonEmpty) {
+            val subjectVariable = Variable("s1")
+            val objectVariable = Variable("o1")
+
+            val patterns = List(
+                GraphPattern(List(TriplePattern(subjectVariable, Variable("sp0"), Uri(vertexURI))),
+                    GraphPattern.optionalProperties(subjectVariable)
+                ),
+                GraphPattern(List(TriplePattern(Uri(vertexURI), Variable("op0"), objectVariable)),
+                    GraphPattern.optionalProperties(objectVariable)
+                )
+            )
+
+            patterns.par.map(p => transformerExecuteQuery(instance, SelectCountQuery(p).toString)).reduce(_ + _)
         } else {
             JenaGraph.empty
         }

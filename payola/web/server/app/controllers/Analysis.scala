@@ -51,7 +51,6 @@ object Analysis extends PayolaController with Secured
 
     def check() = authenticated { user =>
         user.ownedAnalyses.map { p =>
-            //println(p.id)
             val checkResult = Payola.model.analysisModel.checkDSResult(getAnalysisById(Some(user), p.id), Some(user))
             val analysisM = Payola.model.analysisModel.getById(p.id)
             analysisM.map {

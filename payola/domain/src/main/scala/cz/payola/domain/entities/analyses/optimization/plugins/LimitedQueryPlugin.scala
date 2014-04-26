@@ -18,6 +18,12 @@ class LimitedQueryPlugin extends Plugin("SPARQL query with a LIMIT statement", 1
         }
     }
 
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        instance match {
+            case _ => throw new PluginException("This should not be called.")
+        }
+    }
+
     def getQueryString(limitedQuery: LimitedQueryPluginInstance) : String = {
         val sparqlQuery = limitedQuery.sparqlQuery
         val query = sparqlQuery.plugin.getQuery(sparqlQuery.instance)

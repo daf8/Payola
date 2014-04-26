@@ -25,8 +25,19 @@ class Limit(name: String, inputCount: Int, parameters: immutable.Seq[Parameter[_
         instance.getIntParameter(Limit.limitCountParameter)
     }
 
+    def transformerGetLimitCount(instance: TransformerPluginInstance): Option[Int] = {
+        instance.getIntParameter(Limit.limitCountParameter)
+    }
+
     def getConstructQuery(instance: PluginInstance, subject: Subject, variableGetter: () => Variable) = {
         usingDefined(getLimitCount(instance)) { limit =>
+            val triples = List(TriplePattern(subject, variableGetter(), variableGetter()))
+            ConstructQuery(GraphPattern(triples), sparql.Limit(limit))
+        }
+    }
+
+    def transformerGetConstructQuery(instance: TransformerPluginInstance, subject: Subject, variableGetter: () => Variable) = {
+        usingDefined(transformerGetLimitCount(instance)) { limit =>
             val triples = List(TriplePattern(subject, variableGetter(), variableGetter()))
             ConstructQuery(GraphPattern(triples), sparql.Limit(limit))
         }

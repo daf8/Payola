@@ -55,6 +55,13 @@ abstract class Plugin(
     }
 
     /**
+     * Returns a new instance of the plugin with all parameter instances set to default values.
+     */
+    final def createTransformerInstance(): TransformerPluginInstance = {
+        new TransformerPluginInstance(this, parameters.map(_.createValue(None)))
+    }
+
+    /**
       * Evaluates the plugin.
       * @param instance The corresponding instance.
       * @param inputs The input graphs.
@@ -63,6 +70,16 @@ abstract class Plugin(
       * @return The output graph.
       */
     def evaluate(instance: PluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit): Graph
+
+    /**
+     * Evaluates the plugin.
+     * @param instance The corresponding instance.
+     * @param inputs The input graphs.
+     * @param progressReporter A method that can be used to report plugin evaluation progress (which has to be within
+     *                         the (0.0, 1.0] interval).
+     * @return The output graph.
+     */
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit): Graph
 
     override final def canEqual(other: Any): Boolean = {
         other.isInstanceOf[Plugin]

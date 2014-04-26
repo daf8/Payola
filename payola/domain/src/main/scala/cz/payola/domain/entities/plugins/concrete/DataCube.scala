@@ -46,6 +46,15 @@ class DataCube(name: String, inputCount: Int, parameters: immutable.Seq[Paramete
     }
 
     /**
+     * Returns the query to execute based on the plugin instance.
+     * @param instance The evaluated plugin instance.
+     * @return The query.
+     */
+    def transformerGetQuery(instance: TransformerPluginInstance): String = {
+        instance.getStringParameter(instance.plugin.parameters.sortBy(_.ordering.getOrElse(9999)).head.name).getOrElse("")
+    }
+
+    /**
      * Plugin evaluation -> run a SPARQL query + add DCV definition
      * @param instance The corresponding instance.
      * @param inputs The input graphs.
@@ -58,6 +67,21 @@ class DataCube(name: String, inputCount: Int, parameters: immutable.Seq[Paramete
         val query = getQuery(instance)
 
         definedInputs(0).executeSPARQLQuery(query) + JenaGraph(RdfRepresentation.Turtle, getDCVDefinitionQuery(instance))
+    }
+
+    /**
+     * Plugin evaluation -> run a SPARQL query + add DCV definition
+     * @param instance The corresponding instance.
+     * @param inputs The input graphs.
+     * @param progressReporter A method that can be used to report plugin evaluation progress (which has to be within
+     *                         the (0.0, 1.0] interval).
+     * @return The output graph.
+     */
+    override def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        val definedInputs = getDefinedInputs(inputs)
+        val query = transformerGetQuery(instance)
+
+        definedInputs(0).executeSPARQLQuery(query) + JenaGraph(RdfRepresentation.Turtle, transformerGetDCVDefinitionQuery(instance))
     }
 
     /**
@@ -78,5 +102,25 @@ class DataCube(name: String, inputCount: Int, parameters: immutable.Seq[Paramete
                  }.getOrElse("") +
         "    ] "
         }.mkString(" ;\n")+" ."
+    }
+
+    /**
+     * Query builder
+     * @param instance Plugin instance to build query from
+     * @return Query
+     */
+    def transformerGetDCVDefinitionQuery(instance: TransformerPluginInstance) : String = {
+        "[] a <http://purl.org/linked-data/cube#DataStructureDefinition> ;\n" +
+            instance.plugin.parameters.map{ p =>
+                val componentType = p.defaultValue.toString.split(" ~ ")(0)
+
+                "    <http://purl.org/linked-data/cube#component> [ \n" +
+                    "        <http://purl.org/linked-data/cube#"+componentType+"> <"+p.name+"> ;\n" +
+                    "        <http://www.w3.org/2000/01/rdf-schema#label> \""+p.defaultValue.toString.split(" ~ ")(1) +"\"" +
+                    p.ordering.map{ o =>
+                        " ;\n        <http://purl.org/linked-data/cube#order> "+o.toString+" \n"
+                    }.getOrElse("") +
+                    "    ] "
+            }.mkString(" ;\n")+" ."
     }
 }

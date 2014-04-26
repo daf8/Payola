@@ -71,6 +71,58 @@ sealed class Input(name: String, inputCount: Int, parameters: immutable.Seq[Para
     }
 
     def askQuerySource(instance: PluginInstance, query: String): Boolean = false
+
+    def transformerGetName(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Input.nameParameter)
+    }
+
+    def transformerGetDesc(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Input.descParameter)
+    }
+
+    def transformerGetAsk(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Input.askQueryParameter)
+    }
+
+    def transformerExecuteQuery(instance: TransformerPluginInstance, query: String): Graph = {
+        /*usingDefined(getEndpointURL(instance), getGraphURIs(instance)) { (endpointURL, endpointGraphURIs) =>
+            val sparqlQuery = QueryFactory.create(query)
+            val queryGraphURIs = sparqlQuery.getGraphURIs.toList
+
+            // Replace the graph URIs with intersection of them and URIs specified in the endpoint. If any of the two
+            // collections is empty, then it represents all graphs.
+            val union = endpointGraphURIs.union(queryGraphURIs)
+            val intersection = endpointGraphURIs.intersect(queryGraphURIs)
+            val graphURIs =
+                if (endpointGraphURIs.isEmpty || queryGraphURIs.isEmpty) {
+                    Some(union)
+                } else if (intersection.nonEmpty) {
+                    Some(intersection)
+                } else {
+                    None
+                }
+
+            // Execute the query only if the intersection wasn't empty.
+            val result = graphURIs.map { uris =>
+                sparqlQuery.getGraphURIs.clear()
+                uris.foreach(sparqlQuery.addGraphURI(_))
+                new SparqlEndpoint(endpointURL).executeQuery(sparqlQuery.toString)
+            }
+
+            result.getOrElse(*/JenaGraph.empty/*)
+        }*/
+    }
+
+    def transformerAskQuery(instance: TransformerPluginInstance): Boolean = {
+        /*usingDefined(getEndpointURL(instance), getAsk(instance)) { (endpointURL, query) =>
+            val sparqlQuery = QueryFactory.create(query)
+            val result: String = new SparqlEndpoint(endpointURL).askQuery(sparqlQuery.toString)
+            result.toBoolean
+        }*/
+        true
+    }
+
+    def transformerAskQuerySource(instance: TransformerPluginInstance, query: String): Boolean = false
 }
 
 object Input

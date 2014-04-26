@@ -105,5 +105,23 @@ trait PluginModelComponent extends EntityModelComponent
             pluginRepository.persist(plugin)
             plugin
         }
+
+        def createTransformerInstance(paramValIds: Seq[String], transformer: Transformer, owner: Option[User]): Plugin = {
+            def iterateParams: Seq[Parameter[_]] = {
+                paramValIds.map(_.split(":~:")).map {
+                    t => transformer.pluginInstances.flatMap(_.parameterValues).find(_.id == t(0))
+                        .map(cloneParameter(_, t(1)))
+                }.flatten
+            }
+            val parameters = List(
+                new StringParameter("Transformer ID", transformer.id, false, false, false)) ++
+                iterateParams
+
+            val plugin = new TransformerPlugin(transformer, parameters.toSeq)
+            plugin.owner = owner
+            plugin.isPublic = false
+            pluginRepository.persist(plugin)
+            plugin
+        }
     }
 }

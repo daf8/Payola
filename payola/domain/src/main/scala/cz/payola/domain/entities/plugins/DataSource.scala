@@ -73,6 +73,16 @@ class DataSource(protected var _name: String, protected var _owner: Option[User]
         instance
     }
 
+    /**
+     * Returns a plugin instance corresponding to the DataSource.
+     */
+    def toTransformerInstance: TransformerPluginInstance = {
+        val instance = plugin.createTransformerInstance()
+        plugin.parameters.foreach(n => getParameter(n.name).foreach(instance.setParameter(n.name, _)))
+        instance.isEditable = isEditable
+        instance
+    }
+
     override def canEqual(other: Any): Boolean = {
         other.isInstanceOf[DataSource]
     }

@@ -11,6 +11,12 @@ import cz.payola.common.entities.plugins.DataSource
 trait AccessAnalysisPrivilege extends Privilege[Analysis]
 
 /**
+ * The user may access the specified transformer, so he can see the transformer structure and the plugin instances it
+ * consists of, run the transformer and browse the result.
+ */
+trait AccessTransformerPrivilege extends Privilege[Transformer]
+
+/**
   * The user may browser the specified data source and use it in his analyses.
   */
 trait AccessDataSourcePrivilege extends Privilege[DataSource]

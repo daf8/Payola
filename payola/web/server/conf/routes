@@ -28,6 +28,17 @@ GET     /analysis/take-ownership/:id          controllers.Analysis.takeOwnership
 GET     /analysis/delete/:id        controllers.Analysis.delete(id)
 GET     /analysis/clone/:id         controllers.Analysis.cloneAndEdit(id)
 GET     /analysis/:id               controllers.Analysis.detail(id)
+GET     /transformer/accessible        controllers.Transformer.listAccessible(page: Int ?= 1)
+GET     /transformer/accessible/:uid   controllers.Transformer.listAccessibleByOwner(uid,page: Int ?= 1)
+GET     /transformer/list              controllers.Transformer.list(page: Int ?= 1)
+GET     /transformer/executable        controllers.Transformer.listExecutable(page: Int ?= 1)
+GET     /transformer/check             controllers.Transformer.check()
+GET     /transformer/create            controllers.Transformer.create
+GET     /transformer/edit/:id          controllers.Transformer.edit(id)
+GET     /transformer/take-ownership/:id          controllers.Transformer.takeOwnership(id)
+GET     /transformer/delete/:id        controllers.Transformer.delete(id)
+GET     /transformer/clone/:id         controllers.Transformer.cloneAndEdit(id)
+GET     /transformer/:id               controllers.Transformer.detail(id)
 GET     /visualize                  controllers.Analysis.visualizeAnonymously(endpointUri: String, graphUri: List[String], classUri: Option[String] ?= None, propertyUri: Option[String] ?= None)
 
 GET     /analysis/:analysisID/evaluation/:evaluationID/download.rdf   controllers.GraphDownloader.downloadAnalysisEvaluationResultAsXML(analysisID, evaluationID)

@@ -26,4 +26,8 @@ class AnalysisPlugin(name: String, inputCount: Int, parameters: immutable.Seq[Pa
     def evaluate(instance: PluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
         throw new Exception("This should be never called.")
     }
+
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        throw new Exception("This should be never called.")
+    }
 }

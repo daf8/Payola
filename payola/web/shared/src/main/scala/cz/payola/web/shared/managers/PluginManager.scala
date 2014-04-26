@@ -120,4 +120,15 @@ import cz.payola.web.shared.Email
         }.getOrElse{ failCallback(new Exception) }
 
     }
+
+    @async def createTransformerInstance(paramIds: Seq[String], transformerId: String, user: Option[User] = None)
+        (successCallback: (cz.payola.common.entities.Plugin => Unit))
+        (failCallback: (Throwable => Unit)) {
+
+        Payola.model.transformerModel.getAccessibleToUser(user).find(_.id == transformerId).map{ transformer =>
+            val plugin = Payola.model.pluginModel.createTransformerInstance(paramIds, transformer, user)
+            successCallback(plugin)
+        }.getOrElse{ failCallback(new Exception) }
+
+    }
 }

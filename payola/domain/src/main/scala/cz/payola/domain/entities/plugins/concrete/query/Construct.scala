@@ -32,8 +32,19 @@ abstract class Construct(
       */
     def getConstructQuery(instance: PluginInstance, subject: Subject, variableGetter: () => Variable): ConstructQuery
 
+    def transformerGetConstructQuery(instance: TransformerPluginInstance, subject: Subject, variableGetter: () => Variable): ConstructQuery
+
     def getQuery(instance: PluginInstance): String = {
         val query = getConstructQuery(instance, Variable("s"), new VariableGenerator)
+        if (query.isEmpty) {
+            throw new PluginException("The construct query is empty.")
+        } else {
+            query.toString
+        }
+    }
+
+    def transformerGetQuery(instance: TransformerPluginInstance): String = {
+        val query = transformerGetConstructQuery(instance, Variable("s"), new VariableGenerator)
         if (query.isEmpty) {
             throw new PluginException("The construct query is empty.")
         } else {

@@ -76,6 +76,10 @@ object Model
 
     }
 
+    def getOwnedTransformerById(analysisId: String)(successCallback: Transformer => Unit)(errorCallback: Throwable => Unit) {
+
+    }
+
     def ontologyCustomizationsByOwnership(successCallback: OntologyCustomizationsByOwnership => Unit)
         (errorCallback: Throwable => Unit) {
 

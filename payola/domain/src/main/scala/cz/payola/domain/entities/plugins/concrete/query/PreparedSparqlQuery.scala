@@ -29,6 +29,20 @@ sealed class PreparedSparqlQuery(name: String, inputCount: Int, parameters: immu
             query
         })
     }
+
+    def transformerGetQuery(instance: TransformerPluginInstance): String = {
+        usingDefined(
+            instance.getStringParameter(PreparedSparqlQuery.queryParameter),
+            instance.getStringParameter(PreparedSparqlQuery.paramsParameter)
+        )((q,p) => {
+            var query = q
+            p.split("\n").foreach { param =>
+                val parts = param.split(":")
+                query = query.replaceAll(parts(0).replaceAll("\\?","\\\\?"),parts(1))
+            }
+            query
+        })
+    }
 }
 
 object PreparedSparqlQuery

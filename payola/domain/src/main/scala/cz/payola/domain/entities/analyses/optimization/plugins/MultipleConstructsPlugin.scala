@@ -19,4 +19,10 @@ object MultipleConstructsPlugin extends Construct("Merged SPARQL construct queri
             case _ => throw new PluginException("The specified plugin instance doesn't correspond to the plugin.")
         }
     }
+
+    def transformerGetConstructQuery(instance: TransformerPluginInstance, subject: Subject, variableGetter: () => Variable) = {
+        instance match {
+            case _ => throw new PluginException("This should not be called.")
+        }
+    }
 }

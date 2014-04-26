@@ -44,6 +44,11 @@ trait ParameterValue[A] extends cz.payola.domain.entities.plugins.ParameterValue
     var pluginInstanceId: Option[String] = None
 
     /**
+     * ID of plugin instances this parameter value is assigned to
+     */
+    var transformerPluginInstanceId: Option[String] = None
+
+    /**
      * ID of data source this parameter value is assigned to
      */
     var dataSourceId: Option[String] = None

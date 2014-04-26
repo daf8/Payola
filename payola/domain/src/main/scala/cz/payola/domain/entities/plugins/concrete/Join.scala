@@ -24,12 +24,32 @@ class Join(name: String, inputCount: Int, parameters: immutable.Seq[Parameter[_]
         instance.getStringParameter(Join.propertyURIParameter)
     }
 
+    def transformerGetJoinPropertyURI(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Join.propertyURIParameter)
+    }
+
     def getIsInner(instance: PluginInstance): Option[Boolean] = {
+        instance.getBooleanParameter(Join.isInnerParameter)
+    }
+
+    def transformerGetIsInner(instance: TransformerPluginInstance): Option[Boolean] = {
         instance.getBooleanParameter(Join.isInnerParameter)
     }
 
     def evaluate(instance: PluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
         usingDefined(getJoinPropertyURI(instance), getIsInner(instance)) { (propertyURI, isInner) =>
+            val definedInputs = getDefinedInputs(inputs)
+            var result = definedInputs.head
+            for (i <- 1 until inputs.size) {
+                progressReporter((1.0 * i) / inputs.size)
+                result = joinGraphs(result, definedInputs(i), propertyURI, isInner)
+            }
+            result
+        }
+    }
+
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        usingDefined(transformerGetJoinPropertyURI(instance), transformerGetIsInner(instance)) { (propertyURI, isInner) =>
             val definedInputs = getDefinedInputs(inputs)
             var result = definedInputs.head
             for (i <- 1 until inputs.size) {

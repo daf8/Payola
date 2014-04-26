@@ -22,7 +22,15 @@ class Filter(name: String, inputCount: Int, parameters: immutable.Seq[Parameter[
         instance.getStringParameter(Filter.propertyURIParameter)
     }
 
+    def transformerGetPropertyURI(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Filter.propertyURIParameter)
+    }
+
     def getOperator(instance: PluginInstance): Option[String] = {
+        instance.getStringParameter(Filter.operatorParameter)
+    }
+
+    def transformerGetOperator(instance: TransformerPluginInstance): Option[String] = {
         instance.getStringParameter(Filter.operatorParameter)
     }
 
@@ -30,8 +38,21 @@ class Filter(name: String, inputCount: Int, parameters: immutable.Seq[Parameter[
         instance.getStringParameter(Filter.valueParameter)
     }
 
+    def transformerGetValue(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Filter.valueParameter)
+    }
+
     def getConstructQuery(instance: PluginInstance, subject: Subject, variableGetter: () => Variable) = {
         usingDefined(getPropertyURI(instance), getOperator(instance), getValue(instance)) { (u, o, v) =>
+            val objectVariable = variableGetter()
+            val triples = List(TriplePattern(subject, Uri(u), objectVariable))
+            val filters = List(sparql.Filter(objectVariable + " " + o + " " + v))
+            ConstructQuery(triples, Some(GraphPattern(triples, filters = filters)))
+        }
+    }
+
+    def transformerGetConstructQuery(instance: TransformerPluginInstance, subject: Subject, variableGetter: () => Variable) = {
+        usingDefined(transformerGetPropertyURI(instance), transformerGetOperator(instance), transformerGetValue(instance)) { (u, o, v) =>
             val objectVariable = variableGetter()
             val triples = List(TriplePattern(subject, Uri(u), objectVariable))
             val filters = List(sparql.Filter(objectVariable + " " + o + " " + v))

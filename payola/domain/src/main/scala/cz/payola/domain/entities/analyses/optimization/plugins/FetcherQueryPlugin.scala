@@ -32,4 +32,10 @@ object FetcherQueryPlugin extends Plugin("Multiple merged SPARQL query parts", 0
             case _ => throw new PluginException("The specified plugin instance doesn't correspond to the plugin.")
         }
     }
+
+    def transformerEvaluate(instance: TransformerPluginInstance, inputs: IndexedSeq[Option[Graph]], progressReporter: Double => Unit) = {
+        instance match {
+            case _ => throw new PluginException("This should not be called.")
+        }
+    }
 }

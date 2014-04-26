@@ -18,8 +18,19 @@ class Typed(name: String, inputCount: Int, parameters: immutable.Seq[Parameter[_
         instance.getStringParameter(Typed.typeURIParameter)
     }
 
+    def transformerGetTypeURI(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(Typed.typeURIParameter)
+    }
+
     def getConstructQuery(instance: PluginInstance, subject: Subject, variableGetter: () => Variable) = {
         usingDefined(getTypeURI(instance)) { uri =>
+            val triples = List(TriplePattern(subject, Uri(Edge.rdfTypeEdge), Uri(uri)))
+            ConstructQuery(GraphPattern(triples))
+        }
+    }
+
+    def transformerGetConstructQuery(instance: TransformerPluginInstance, subject: Subject, variableGetter: () => Variable) = {
+        usingDefined(transformerGetTypeURI(instance)) { uri =>
             val triples = List(TriplePattern(subject, Uri(Edge.rdfTypeEdge), Uri(uri)))
             ConstructQuery(GraphPattern(triples))
         }

@@ -19,6 +19,7 @@ trait Analysis extends Entity with NamedEntity with OptionallyOwnedEntity with S
     /** Type of the bindings between analytical plugin instances. */
     type PluginInstanceBindingType <: PluginInstanceBinding
 
+    /** Type of the compatibility check between plugin instance and data source. */
     type CompatibilityCheckType <: CompatibilityCheck
 
     /** Type of the ontology customization for analysis */

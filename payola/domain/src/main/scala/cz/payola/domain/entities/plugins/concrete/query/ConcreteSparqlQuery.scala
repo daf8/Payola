@@ -18,6 +18,10 @@ sealed class ConcreteSparqlQuery(name: String, inputCount: Int, parameters: immu
     def getQuery(instance: PluginInstance): String = {
         usingDefined(instance.getStringParameter(ConcreteSparqlQuery.queryParameter))(q => q)
     }
+
+    def transformerGetQuery(instance: TransformerPluginInstance): String = {
+        usingDefined(instance.getStringParameter(ConcreteSparqlQuery.queryParameter))(q => q)
+    }
 }
 
 object ConcreteSparqlQuery

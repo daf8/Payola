@@ -24,6 +24,8 @@ class User(protected var _name: String)
 
     type AnalysisType = Analysis
 
+    type TransformerType = Transformer
+
     type DataSourceType = DataSource
 
     type PluginType = Plugin
@@ -33,20 +35,37 @@ class User(protected var _name: String)
     type PrefixType = Prefix
 
     /**
-      * Adds the analysis to the users owned analyses. The analysis has to be owned by the user.
-      * @param analysis Analysis to be added.
-      */
+     * Adds the analysis to the users owned analyses. The analysis has to be owned by the user.
+     * @param analysis Analysis to be added.
+     */
     def addOwnedAnalysis(analysis: AnalysisType) {
         addOwnedEntity(analysis, ownedAnalyses, storeOwnedAnalysis)
     }
 
     /**
-      * Removes the specified analysis from the users owned analyses.
-      * @param analysis The analysis to be removed.
-      * @return The removed analysis.
-      */
+     * Removes the specified analysis from the users owned analyses.
+     * @param analysis The analysis to be removed.
+     * @return The removed analysis.
+     */
     def removeOwnedAnalysis(analysis: AnalysisType): Option[AnalysisType] = {
         removeRelatedEntity(analysis, ownedAnalyses, discardOwnedAnalysis)
+    }
+
+    /**
+     * Adds the transformer to the users owned analyses. The transformer has to be owned by the user.
+     * @param transformer Transformer to be added.
+     */
+    def addOwnedTransformer(transformer: TransformerType) {
+        addOwnedEntity(transformer, ownedTransformers, storeOwnedTransformer)
+    }
+
+    /**
+     * Removes the specified transformer from the users owned analyses.
+     * @param transformer The transformer to be removed.
+     * @return The removed transformer.
+     */
+    def removeOwnedTransformer(transformer: TransformerType): Option[TransformerType] = {
+        removeRelatedEntity(transformer, ownedTransformers, discardOwnedTransformer)
     }
 
     /**
@@ -123,6 +142,7 @@ class User(protected var _name: String)
     def getOwnedEntities(entityClassName: String): Seq[Entity with NamedEntity] = {
         Map(
             Entity.getClassName(classOf[Analysis]) -> ownedAnalyses,
+            Entity.getClassName(classOf[Transformer]) -> ownedTransformers,
             Entity.getClassName(classOf[DataSource]) -> ownedDataSources,
             Entity.getClassName(classOf[Plugin]) -> ownedPlugins,
             Entity.getClassName(classOf[Customization]) -> ownedCustomizations,

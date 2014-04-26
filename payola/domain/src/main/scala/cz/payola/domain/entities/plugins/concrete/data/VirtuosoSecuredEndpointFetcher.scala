@@ -102,6 +102,75 @@ sealed class VirtuosoSecuredEndpointFetcher(name: String, inputCount: Int, param
                 result.toBoolean
         }
     }
+
+    def transformerGetEndpointURL(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(VirtuosoSecuredEndpointFetcher.endpointURLParameter)
+    }
+
+    def transformerGetGraphURIs(instance: TransformerPluginInstance): Option[Seq[String]] = {
+        instance.getStringParameter(SparqlEndpointFetcher.graphURIsParameter).map(_.split("\\s+").filter(_ != "").toList)
+    }
+
+    def transformerGetAsk(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(VirtuosoSecuredEndpointFetcher.askQueryParameter)
+    }
+
+    def transformerGetUsername(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(VirtuosoSecuredEndpointFetcher.usernameParameter)
+    }
+
+    def transformerGetPassword(instance: TransformerPluginInstance): Option[String] = {
+        instance.getStringParameter(VirtuosoSecuredEndpointFetcher.passwordParameter)
+    }
+
+    def transformerExecuteQuery(instance: TransformerPluginInstance, query: String): Graph = {
+        usingDefined(transformerGetEndpointURL(instance), transformerGetGraphURIs(instance), transformerGetUsername(instance), transformerGetPassword(instance)) {
+            (endpointURL, endpointGraphURIs, username, password) =>
+                val sparqlQuery = QueryFactory.create(query)
+                val queryGraphURIs = sparqlQuery.getGraphURIs.toList
+
+                // Replace the graph URIs with intersection of them and URIs specified in the endpoint. If any of the two
+                // collections is empty, then it represents all graphs.
+                val union = endpointGraphURIs.union(queryGraphURIs)
+                val intersection = endpointGraphURIs.intersect(queryGraphURIs)
+                val graphURIs =
+                    if (endpointGraphURIs.isEmpty || queryGraphURIs.isEmpty) {
+                        Some(union)
+                    } else if (intersection.nonEmpty) {
+                        Some(intersection)
+                    } else {
+                        None
+                    }
+
+                // Execute the query only if the intersection wasn't empty.
+                val result = graphURIs.map {
+                    uris =>
+                        sparqlQuery.getGraphURIs.clear()
+                        uris.foreach(sparqlQuery.addGraphURI(_))
+                        new VirtuosoSecuredEndpoint(endpointURL, username, password).executeQuery(sparqlQuery.toString)
+                }
+
+                result.getOrElse(JenaGraph.empty)
+        }
+    }
+
+    def transformerAskQuery(instance: TransformerPluginInstance): Boolean = {
+        usingDefined(transformerGetEndpointURL(instance), transformerGetAsk(instance), transformerGetUsername(instance), transformerGetPassword(instance)) {
+            (endpointURL, query, username, password) =>
+                val sparqlQuery = QueryFactory.create(query)
+                val result: String = new VirtuosoSecuredEndpoint(endpointURL, username, password).askQuery(sparqlQuery.toString)
+                result.toBoolean
+        }
+    }
+
+    def transformerAskQuerySource(instance: TransformerPluginInstance, query: String): Boolean = {
+        usingDefined(transformerGetEndpointURL(instance), transformerGetUsername(instance), transformerGetPassword(instance)) {
+            (endpointURL, username, password) =>
+                val sparqlQuery = QueryFactory.create(query)
+                val result: String = new VirtuosoSecuredEndpoint(endpointURL, username, password).askQuery(sparqlQuery.toString)
+                result.toBoolean
+        }
+    }
 }
 
 object VirtuosoSecuredEndpointFetcher

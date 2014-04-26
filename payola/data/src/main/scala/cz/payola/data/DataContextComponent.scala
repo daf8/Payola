@@ -33,6 +33,11 @@ trait DataContextComponent
     val analysisRepository: AnalysisRepository
 
     /**
+     * A repository to access persisted transformers
+     */
+    val transformerRepository: TransformerRepository
+
+    /**
      * A repository to access persisted plugins
      */
     val pluginRepository: PluginRepository
@@ -58,6 +63,11 @@ trait DataContextComponent
     val analysisResultRepository: AnalysisResultRepository
 
     /**
+     * A repository to access stored transformers results
+     */
+    val transformerResultRepository: TransformerResultRepository
+
+    /**
      * A registry that provides repositories by class name of persisted entity
      */
     lazy val repositoryRegistry = new RepositoryRegistry(Map(
@@ -65,6 +75,7 @@ trait DataContextComponent
         classOf[Group] -> groupRepository,
         classOf[Privilege[_]] -> privilegeRepository,
         classOf[Analysis] -> analysisRepository,
+        classOf[Transformer] -> transformerRepository,
         classOf[Plugin] -> pluginRepository,
         classOf[DataSource] -> dataSourceRepository,
         classOf[Customization] -> customizationRepository,
@@ -254,6 +265,28 @@ trait DataContextComponent
     }
 
     /**
+     * Defines operations of repository accessing transformers
+     */
+    trait TransformerRepository
+        extends Repository[Transformer]
+        with NamedEntityRepository[Transformer]
+        with OptionallyOwnedEntityRepository[Transformer]
+        with ShareableEntityRepository[Transformer]
+    {
+        /**
+         * Persists specified PluginInstance of Transformer
+         * @param pluginInstance PluginInstance to persist
+         */
+        def persistPluginInstance(pluginInstance: TransformerPluginInstance)
+
+        /**
+         * Persists given ParameterValue
+         * @param parameterValue ParameterValue to persist
+         */
+        def persistParameterValue(parameterValue: ParameterValue[_])
+    }
+
+    /**
      * Defines operations of repository accessing ontology customizations
      */
     trait CustomizationRepository
@@ -341,6 +374,21 @@ trait DataContextComponent
         def updateTimestamp(evaluationId: String)
 
         def byEvaluationId(evaluationId: String) : Option[AnalysisResult]
+
+        def exists(evaluationId: String): Boolean
+    }
+
+    trait TransformerResultRepository extends Repository[TransformerResult]
+    {
+        def storeResult(transformerDescription: TransformerResult)
+
+        def getResult(evaluationId: String, transformerId: String): Option[TransformerResult]
+
+        def deleteResult(evaluationId: String, transformerId: String)
+
+        def updateTimestamp(evaluationId: String)
+
+        def byEvaluationId(evaluationId: String) : Option[TransformerResult]
 
         def exists(evaluationId: String): Boolean
     }

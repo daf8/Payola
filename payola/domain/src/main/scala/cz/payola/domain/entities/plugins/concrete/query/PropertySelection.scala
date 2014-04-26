@@ -20,12 +20,32 @@ class  PropertySelection(name: String, inputCount: Int, parameters: immutable.Se
         instance.getStringParameter(PropertySelection.propertyURIsParameter).map(_.split("\n").filter(_ != "").toList)
     }
 
+    def transformerGetPropertyURIs(instance: TransformerPluginInstance): Option[Seq[String]] = {
+        instance.getStringParameter(PropertySelection.propertyURIsParameter).map(_.split("\n").filter(_ != "").toList)
+    }
+
     def getSelectPropertyInfo(instance: PluginInstance): Option[Boolean] = {
+        instance.getBooleanParameter(PropertySelection.selectPropertyInfoParameter)
+    }
+
+    def transformerGetSelectPropertyInfo(instance: TransformerPluginInstance): Option[Boolean] = {
         instance.getBooleanParameter(PropertySelection.selectPropertyInfoParameter)
     }
 
     def getConstructQuery(instance: PluginInstance, subject: Subject, variableGetter: () => Variable) = {
         usingDefined(getPropertyURIs(instance), getSelectPropertyInfo(instance)) { (uris, selectInfo) =>
+            val patterns = uris.map { uri =>
+                val objectVariable = variableGetter()
+                val objectPattern = TriplePattern(subject, Uri(uri), objectVariable)
+                val objectProperties = GraphPattern.optionalProperties(objectVariable, variableGetter)
+                GraphPattern(List(objectPattern), if (selectInfo) objectProperties.toList else Nil)
+            }
+            ConstructQuery(patterns.fold(GraphPattern.empty)(_ + _))
+        }
+    }
+
+    def transformerGetConstructQuery(instance: TransformerPluginInstance, subject: Subject, variableGetter: () => Variable) = {
+        usingDefined(transformerGetPropertyURIs(instance), transformerGetSelectPropertyInfo(instance)) { (uris, selectInfo) =>
             val patterns = uris.map { uri =>
                 val objectVariable = variableGetter()
                 val objectPattern = TriplePattern(subject, Uri(uri), objectVariable)
