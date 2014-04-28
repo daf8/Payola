@@ -126,83 +126,6 @@ class TransformerBuilder(parentElementId: String) extends Presenter
         }
     }
 
-    private def mergeBranches(instances: mutable.HashMap[Int, TransformerPluginInstanceView],
-        buffer: ArrayBuffer[TransformerPluginInstanceView],
-        target: Plugin, view: TransformerEditorView, mergeDialog: MergeTransformerBranchesDialog, transformer: Transformer) {
-        var i = 0
-        while (i < instances.size) {
-            buffer.append(instances(i))
-            instances(i).hideControls()
-            branches -= instances(i)
-            i = i + 1
-        }
-
-        mergeDialog.block("Merging branches ...")
-        TransformerBuilderData.createPluginInstance(target.id, transformerId) {
-            createdInstance =>
-                val mergeInstance = new
-                        EditableTransformerPluginInstanceView(createdInstance, buffer.asInstanceOf[Seq[TransformerPluginInstanceView]],
-                            prefixPresenter.prefixApplier)
-                view.visualizer.renderPluginInstanceView(mergeInstance)
-
-                mergeInstance.connectButtonClicked += {
-                    clickedEvent =>
-                        connectPlugin(mergeInstance, view, transformer)
-                        false
-                }
-                mergeInstance.askButtonClicked += onAskClicked(view, transformer)
-
-                mergeInstance.parameterValueChanged += onParameterValueChanged
-                mergeInstance.deleteButtonClicked += onDeleteClick
-
-                i = 0
-                buffer.map {
-                    instance =>
-                        bind(instance, mergeInstance, i)
-                        i += 1
-                }
-
-                branches += mergeInstance
-                mergeDialog.unblock()
-                mergeDialog.destroy()
-        } {
-            e =>
-                mergeDialog.unblock()
-                mergeDialog.destroy()
-                fatalErrorHandler(e)
-        }
-    }
-
-    private def onDataSourceSelected(dataSource: DataSource, view: TransformerEditorView, transformer: Transformer) {
-        blockPage("Making the data source available...")
-        TransformerBuilderData.cloneDataSourceAndBindToTransformer(dataSource.id, transformerId) {
-            pi =>
-                val map = new mutable.HashMap[String, String]
-
-                pi.parameterValues.foreach {
-                    paramValue =>
-                        map.put(paramValue.parameter.name, paramValue.value.toString)
-                }
-
-                val instance = instanceViewFactory.transformerCreateEditable(transformer, pi, List())
-
-                branches.append(instance)
-                view.visualizer.renderPluginInstanceView(instance)
-
-                instance.connectButtonClicked += onConnectClicked(view, transformer)
-                instance.askButtonClicked += onAskClicked(view, transformer)
-
-                instance.parameterValueChanged += onParameterValueChanged
-                instance.deleteButtonClicked += onDeleteClick
-
-                unblockPage()
-        } {
-            err =>
-                fatalErrorHandler(err)
-                unblockPage()
-        }
-    }
-
     private def bindInstanceViewActions(instanceView: EditableTransformerPluginInstanceView, view: TransformerEditorView,
         transformer: Transformer) {
         instanceView.connectButtonClicked += {
@@ -575,84 +498,36 @@ class TransformerBuilder(parentElementId: String) extends Presenter
     protected def bindAddPluginClicked(view: TransformerEditorView, transformer: Transformer) {
         view.addPluginLink.mouseClicked += {
             _ =>
-                val dialog = new
-                        PluginDialog(allPlugins.filter(_.inputCount == 0).filterNot(_.name == "Payola Private Storage"))
-                dialog.pluginNameClicked += {
-                    evtArgs =>
-                        onPluginNameClicked(evtArgs.target, None, view, transformer)
-                        dialog.destroy()
-                        false
+                blockPage("Checking available plugins...")
+                TransformerBuilderData.getTransformer(transformerId) {
+                    t =>
+                        if(t.pluginInstances.length==0) {
+                            val dialog = new
+                                    PluginDialog(
+                                        allPlugins.filter(_.inputCount == 0).filterNot(_.name == "Payola Private Storage"))
+                            dialog.pluginNameClicked += {
+                                evtArgs =>
+                                    onPluginNameClicked(evtArgs.target, None, view, transformer)
+                                    dialog.destroy()
+                                    false
+                            }
+
+                            dialog.createTransformerPluginClicked += {
+                                evtArgs =>
+                                    dialog.destroy()
+                                    onCreateTransformerPluginClicked(view, transformer)
+                                    false
+                            }
+
+                            dialog.render()
+                        } else {
+                            AlertModal.display("Transformer can have only one input", "To add another plugin into the pipeline press 'Add Connection' button at the last plugin.")
+                        }
+                        unblockPage()
+                }{
+                    err =>
+                        fatalErrorHandler(err)
                 }
-
-                dialog.createTransformerPluginClicked += { evtArgs =>
-                    dialog.destroy()
-                    onCreateTransformerPluginClicked(view, transformer)
-                    false
-                }
-
-                dialog.render()
-                false
-        }
-    }
-
-    protected def bindAddDataSourceClicked(view: TransformerEditorView, transformer: Transformer) {
-        view.addDataSourceLink.mouseClicked += {
-            event =>
-                val dialog = new DataSourceSelector("Select one of available data sources:", allSources)
-                dialog.dataSourceSelected += {
-                    e =>
-                        onDataSourceSelected(e.target, view, transformer)
-                        dialog.destroy()
-                }
-                dialog.render()
-                false
-        }
-    }
-
-    protected def createAndShowMergeDialog(inputsCount: Int, targetPlugin: Plugin, view: TransformerEditorView,
-        transformer: Transformer) {
-        val mergeDialog = new MergeTransformerBranchesDialog(branches, inputsCount)
-        mergeDialog.confirming += {
-            e =>
-                val instances = mergeDialog.outputToInstance
-                val buffer = new ArrayBuffer[TransformerPluginInstanceView]()
-
-                if (mergeDialog.outputToInstance.size < inputsCount) {
-                    mergeDialog.destroy()
-                    AlertModal.display("Not enough inputs bound", "You need to bind all the inputs provided.")
-                } else {
-                    mergeBranches(instances, buffer, targetPlugin, view, mergeDialog, transformer)
-                }
-
-                false
-        }
-
-        mergeDialog.render()
-    }
-
-    protected def bindChooseMergePluginDialog(dialog: PluginDialog, view: TransformerEditorView, transformer: Transformer) {
-        dialog.pluginNameClicked += {
-            evt =>
-                dialog.destroy()
-
-                val inputsCount = evt.target.inputCount
-                if (inputsCount > branches.size) {
-                    AlertModal.display("The plugin can't be used",
-                        "The merge plugin has %d inputs, but only %d branches are available."
-                            .format(inputsCount, branches.size))
-                } else {
-                    createAndShowMergeDialog(inputsCount, evt.target, view, transformer)
-                }
-                false
-        }
-        dialog.render()
-    }
-
-    protected def bindMergeBranchesClicked(view: TransformerEditorView, transformer: Transformer) {
-        view.mergeBranches.mouseClicked += {
-            event =>
-                val dialog = new PluginDialog(allPlugins.filter(_.inputCount > 1))
-                bindChooseMergePluginDialog(dialog, view, transformer)
                 false
         }
     }
@@ -664,7 +539,5 @@ class TransformerBuilder(parentElementId: String) extends Presenter
         bindTtlFileTtlChanged(view)
         bindNameChanged(view)
         bindAddPluginClicked(view, transformer)
-        bindAddDataSourceClicked(view, transformer)
-        bindMergeBranchesClicked(view, transformer)
     }
 }

@@ -644,7 +644,7 @@ trait SchemaComponent
             on(booleanParameterValues)(param =>
                 declare(
                     param.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
-                    param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    param.pluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.dataSourceId is (dbType(COLUMN_TYPE_ID)),
                     param.transformerPluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     param.parameterId is (dbType(COLUMN_TYPE_ID)),

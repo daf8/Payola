@@ -30,15 +30,15 @@ class TransformerEditorView(transformer: Transformer, newName: Option[String], n
 
     protected val addDataCubeLinkLi = new ListItem(List(addDataCubeLink),"list-group-item")
 
-    val addDataSourceLink = new Anchor(List(new Icon(Icon.hdd), new Text(" Add data source")))
+    //val addDataSourceLink = new Anchor(List(new Icon(Icon.hdd), new Text(" Add data source")))
 
-    protected val addDataSourceLinkLi = new ListItem(List(addDataSourceLink),"list-group-item")
+    //protected val addDataSourceLinkLi = new ListItem(List(addDataSourceLink),"list-group-item")
 
-    val mergeBranches = new Anchor(List(new Icon(Icon.glass), new Text(" Merge branches")))
+    //val mergeBranches = new Anchor(List(new Icon(Icon.glass), new Text(" Merge branches")))
 
-    protected val mergeBranchesLi = new ListItem(List(mergeBranches),"list-group-item")
+    //protected val mergeBranchesLi = new ListItem(List(mergeBranches),"list-group-item")
 
-    protected val menu = new UnorderedList(List(addPluginLinkLi, addDataSourceLinkLi, mergeBranchesLi),"list-group")
+    protected val menu = new UnorderedList(List(addPluginLinkLi/*, /*addDataSourceLinkLi,*/ mergeBranchesLi*/),"list-group")
 
     val visualizer = new EditableTransformerVisualizer(transformer, prefixApplier)
 

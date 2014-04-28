@@ -18,22 +18,6 @@ import s2js.compiler._
         successCallback(Payola.model.pluginModel.getAccessibleToUser(Some(user)))
     }
 
-    @async def cloneDataSourceAndBindToTransformer(dataSourceId: String, transformerId: String, user: User = null)(successCallback: (TransformerPluginInstance => Unit))
-        (failCallback: (Throwable => Unit)) {
-        val dataSource = Payola.model.dataSourceModel.getAccessibleToUserById(Some(user),dataSourceId).getOrElse {
-            throw new Exception("DataSource not found.")
-        }
-
-        val transformer = Payola.model.transformerModel.getById(transformerId).getOrElse{
-            throw new Exception("Transformer not found.")
-        }
-
-        val copy = dataSource.toTransformerInstance
-        transformer.addPluginInstance(copy)
-
-        successCallback(copy)
-    }
-
     @async def lockTransformer(id: String, user: User = null)(successCallback: (() => Unit))(failCallback: (Throwable => Unit)) {
         successCallback()
     }
