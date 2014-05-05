@@ -436,31 +436,13 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
         analysis: Analysis): (EventArgs[PluginInstanceView]) => Unit = {
         evt =>
             blockPage("Checking data sources with ASK query")
-            AnalysisBuilderData.removeChecks(analysisId,evt.target.getId){
+            AnalysisBuilderData.checkInput(analysisId,evt.target.getId){
                 r =>
+                    AlertModal.display("Data sources check successful","Available data sources: "+r)
+                    unblockPage()
             }{
                 err =>
                     fatalErrorHandler(err)
-            }
-            val x:Int = allSources.length
-            var y:Int = 0
-            var z:Int = 0
-            allSources.map{
-                s =>
-                    AnalysisBuilderData.checkDataSource(analysisId,s.id,evt.target.getId){
-                        r =>
-                            y=y+1
-                            if(r){
-                                z=z+1
-                            }
-                            if (x==y){
-                                AlertModal.display("Data source check successful","Available data sources: "+z)
-                                unblockPage()
-                            }
-                    }{
-                        err =>
-                            fatalErrorHandler(err)
-                    }
             }
             false
     }
