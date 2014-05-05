@@ -18,6 +18,8 @@ import cz.payola.common.entities.transformers.TransformerCompatibilityCheck
 import scala.Some
 import cz.payola.data.squeryl.entities.TransformerResult
 import com.hp.hpl.jena.query._
+import com.hp.hpl.jena.rdf.model.Model
+import com.hp.hpl.jena.rdf.model.ModelFactory
 import cz.payola.domain.DomainException
 import cz.payola.common.TransformerEvaluationError
 import cz.payola.domain.entities.transformers.evaluation.Success
@@ -28,6 +30,9 @@ import cz.payola.domain.entities.plugins.concrete.DataFetcher
 import java.net.ConnectException
 import cz.payola.common.CheckError
 import cz.payola.common.CheckSuccess
+import cz.payola.domain.rdf._
+import java.io.InputStream
+import java.io.ByteArrayInputStream
 
 trait
 TransformerModelComponent extends EntityModelComponent
@@ -58,14 +63,27 @@ TransformerModelComponent extends EntityModelComponent
             }
         }
 
-        def addChecking(transformerId: String, pluginInstanceId: String, dataSource: DataSource) {
+        def addChecking(transformerId: String, pluginInstanceId: String, analysis: Analysis) {
             getById(transformerId).map {
                 a =>
                     val pluginInstance = a.pluginInstances.find(_.id == pluginInstanceId)
                     if (!pluginInstance.isDefined) {
                         throw new Exception("Invalid plugin instance or data source.")
                     }
-                    a.addChecking(pluginInstance.get, dataSource)
+                    a.addChecking(pluginInstance.get, analysis)
+            }.getOrElse {
+                throw new Exception("Unknown transformer.")
+            }
+        }
+
+        def addTransformerChecking(transformerId: String, pluginInstanceId: String, transformer: Transformer) {
+            getById(transformerId).map {
+                a =>
+                    val pluginInstance = a.pluginInstances.find(_.id == pluginInstanceId)
+                    if (!pluginInstance.isDefined) {
+                        throw new Exception("Invalid plugin instance or data source.")
+                    }
+                    a.addTransformerChecking(pluginInstance.get, transformer)
             }.getOrElse {
                 throw new Exception("Unknown transformer.")
             }
@@ -81,6 +99,10 @@ TransformerModelComponent extends EntityModelComponent
                     a.compatibilityChecks.filter(_.sourcePluginInstance.id == pluginInstanceId).foreach {
                         b =>
                             a.removeChecking(b)
+                    }
+                    a.compatibilityTransformerChecks.filter(_.sourcePluginInstance.id == pluginInstanceId).foreach {
+                        b =>
+                            a.removeTransformerChecking(b)
                     }
             }.getOrElse {
                 throw new Exception("Unknown transformer.")
@@ -535,6 +557,14 @@ TransformerModelComponent extends EntityModelComponent
 
                     Some(partial.id)
             }.getOrElse(None)
+        }
+
+        def executeQuery(ttl: String, query: String): Boolean = {
+            val model: Model = ModelFactory.createDefaultModel()
+            val is: InputStream = new ByteArrayInputStream(ttl.getBytes("UTF-8"))
+            model.read(is,null,"TTL")
+            val graph = new JenaGraph(model)
+            graph.executeSPARQLAskQuery(query)
         }
     }
 }

@@ -22,27 +22,9 @@ class TransformerEditorView(transformer: Transformer, newName: Option[String], n
 
     protected val properties = new Div(List(name, description, ttl, ttlFileInput))
 
-    val addPluginLink = new Anchor(List(new Icon(Icon.hdd), new Text(" Add plugin")))
-
-    protected val addPluginLinkLi = new ListItem(List(addPluginLink),"list-group-item")
-
-    val addDataCubeLink = new Anchor(List(new Icon(Icon.hdd), new Text(" Add DataCube plugin")))
-
-    protected val addDataCubeLinkLi = new ListItem(List(addDataCubeLink),"list-group-item")
-
-    //val addDataSourceLink = new Anchor(List(new Icon(Icon.hdd), new Text(" Add data source")))
-
-    //protected val addDataSourceLinkLi = new ListItem(List(addDataSourceLink),"list-group-item")
-
-    //val mergeBranches = new Anchor(List(new Icon(Icon.glass), new Text(" Merge branches")))
-
-    //protected val mergeBranchesLi = new ListItem(List(mergeBranches),"list-group-item")
-
-    protected val menu = new UnorderedList(List(addPluginLinkLi/*, /*addDataSourceLinkLi,*/ mergeBranchesLi*/),"list-group")
-
     val visualizer = new EditableTransformerVisualizer(transformer, prefixApplier)
 
-    protected val panelBody = new Div(List(menu, properties), "panel-body")
+    protected val panelBody = new Div(List(properties), "panel-body")
     protected val leftColContent = new Div(List(panelBody), "panel panel-default")
 
     val transformerCanvas = new Div(List(visualizer), "plugin-space")

@@ -18,6 +18,10 @@ import s2js.compiler._
         successCallback(Payola.model.pluginModel.getAccessibleToUser(Some(user)))
     }
 
+    @async def getAnalyses(user: User = null)(successCallback: (Seq[Analysis] => Unit))(failCallback: (Throwable => Unit)) {
+        successCallback(Payola.model.analysisModel.getAccessibleToUser(Some(user)))
+    }
+
     @async def lockTransformer(id: String, user: User = null)(successCallback: (() => Unit))(failCallback: (Throwable => Unit)) {
         successCallback()
     }
@@ -113,29 +117,27 @@ import s2js.compiler._
         successCallback(sources)
     }
 
-    @async def removeChecks(transformerId: String, pluginInstanceId: String, user: User = null)(successCallback: (Boolean => Unit))
+    @async def checkInput(transformerId: String, pluginInstanceId: String, user: User = null)(successCallback: (Int => Unit))
         (failCallback: (Throwable => Unit)) {
+        var i: Int = 0
         Payola.model.transformerModel.removeChecking(transformerId, pluginInstanceId)
-        successCallback(true)
-    }
-
-    @async def checkDataSource(transformerId: String, dataSourceId: String, pluginInstanceId: String, user: User = null)(successCallback: (Boolean => Unit))
-        (failCallback: (Throwable => Unit)) {
-        val dataSource = Payola.model.dataSourceModel.getAccessibleToUserById(Some(user),dataSourceId).getOrElse {
-            throw new Exception("DataSource not found.")
-        }
+        val analyses = Payola.model.analysisModel.getAccessibleToUser(Some(user))
+        val transformers = Payola.model.transformerModel.getAccessibleToUser(Some(user))
         val query = Payola.model.transformerModel.getAccessibleToUserById(Some(user),transformerId).get.pluginInstances.filter(_.id==pluginInstanceId).head.getStringParameter("ASK query").get
-        val copy = dataSource.toTransformerInstance
-        val result =
-            copy.plugin match {
-                case x: DataFetcher => {
-                    x.transformerAskQuerySource(copy,query)
+        analyses.map {
+            a =>
+                if(Payola.model.transformerModel.executeQuery(a.ttl,query)){
+                    Payola.model.transformerModel.addChecking(transformerId, pluginInstanceId, a)
+                    i=i+1
                 }
-                case _ => throw new Exception("Data source is not a data source")
-            }
-        if (result) {
-            Payola.model.transformerModel.addChecking(transformerId, pluginInstanceId, dataSource)
         }
-        successCallback(result)
+        transformers.map {
+            t =>
+                if(Payola.model.transformerModel.executeQuery(t.ttl,query) && t.id != transformerId){
+                    Payola.model.transformerModel.addTransformerChecking(transformerId, pluginInstanceId, t)
+                    i=i+1
+                }
+        }
+        successCallback(i)
     }
 }

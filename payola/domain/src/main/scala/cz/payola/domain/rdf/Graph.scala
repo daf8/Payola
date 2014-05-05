@@ -112,6 +112,23 @@ abstract class Graph(vertices: immutable.Seq[Vertex], edges: immutable.Seq[Edge]
         }
     }
 
+    def executeSPARQLAskQuery(query: String): Boolean = {
+        val sparqlQuery = QueryFactory.create(query)
+        val model = getModel
+        try {
+            val execution = QueryExecutionFactory.create(sparqlQuery, model)
+            try {
+                sparqlQuery.getQueryType match {
+                    case Query.QueryTypeAsk => processAskQueryExecution(execution)
+                    case _ => throw new DomainException("Unsupported query type.")
+                }
+            } finally {
+                execution.close()
+            }
+        } finally {
+            model.close()
+        }
+    }
 
     /**
      * Processes a query execution corresponding to a SPARQL select query.
@@ -123,5 +140,14 @@ abstract class Graph(vertices: immutable.Seq[Vertex], edges: immutable.Seq[Edge]
         val output = new java.io.ByteArrayOutputStream()
         ResultSetFormatter.outputAsRDF(output, "", results)
         makeGraph(RdfRepresentation.RdfXml, new String(output.toByteArray))
+    }
+
+    /**
+     * Processes a query execution corresponding to a SPARQL select query.
+     * @param execution The query execution to process.
+     * @return A graph containing the result of the query.
+     */
+    protected def processAskQueryExecution(execution: QueryExecution): Boolean = {
+        execution.execAsk
     }
 }

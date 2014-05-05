@@ -27,7 +27,7 @@ class EditablePluginInstanceView(pluginInst: PluginInstance, predecessors: Seq[P
 
     def getSourceViews: Seq[View] = {
         if(pluginInstance.plugin.name=="Input") {
-            val askButton = new Button(new Text("Executa ASK query on datasources"))
+            val askButton = new Button(new Text("Execute ASK query on datasources"))
             askButton.mouseClicked += { e =>
                 askButtonClicked.triggerDirectly(this)
                 false

@@ -51,6 +51,10 @@ class Transformer(override val id: String, name: String, o: Option[User], var _i
 
     private lazy val _compatibilityCheckQuery = context.schema.transformersCompatibilityChecks.left(this)
 
+    _compatibilityTransformerChecks = null
+
+    private lazy val _compatibilityTransformerCheckQuery = context.schema.transformersToTransformerCompatibilityChecks.left(this)
+
     _defaultCustomization = null
 
     var defaultCustomizationId: Option[String] = None
@@ -110,6 +114,18 @@ class Transformer(override val id: String, name: String, o: Option[User], var _i
         _compatibilityChecks = mutable.ArrayBuffer(value: _*)
     }
 
+    override def compatibilityTransformerChecks: immutable.Seq[TransformerToTransformerCompatibilityCheckType] = {
+        if (_compatibilityTransformerChecks == null) {
+            context.transformerRepository.loadCompatibilityTransformerChecks(this)
+        }
+
+        _compatibilityTransformerChecks.toList
+    }
+
+    def compatibilityTransformerChecks_=(value: Seq[TransformerToTransformerCompatibilityCheckType]) {
+        _compatibilityTransformerChecks = mutable.ArrayBuffer(value: _*)
+    }
+
     override protected def storePluginInstance(instance: Transformer#TransformerPluginInstanceType) {
         super.storePluginInstance(associatePluginInstance(TransformerPluginInstance(instance)))
     }
@@ -128,15 +144,26 @@ class Transformer(override val id: String, name: String, o: Option[User], var _i
         super.storeChecking(associateCompatibilityCheck(TransformerCompatibilityCheck(checking)))
     }
 
+    override protected def storeTransformerChecking(checking: Transformer#TransformerToTransformerCompatibilityCheckType) {
+        super.storeTransformerChecking(associateTransformerCompatibilityCheck(TransformerToTransformerCompatibilityCheck(checking)))
+    }
+
     override protected def discardBinding(binding: Transformer#TransformerPluginInstanceBindingType) {
         context.transformerRepository.removePluginInstanceBindingById(binding.id)
 
         super.discardBinding(binding)
     }
+
     override protected def discardChecking(checking: Transformer#TransformerCompatibilityCheckType) {
         context.transformerRepository.removeCompatibilityCheckById(checking.id)
 
         super.discardChecking(checking)
+    }
+
+    override protected def discardTransformerChecking(checking: Transformer#TransformerToTransformerCompatibilityCheckType) {
+        context.transformerRepository.removeCompatibilityTransformerCheckById(checking.id)
+
+        super.discardTransformerChecking(checking)
     }
 
     def associatePluginInstance(instance: TransformerPluginInstance): TransformerPluginInstance = {
@@ -152,5 +179,9 @@ class Transformer(override val id: String, name: String, o: Option[User], var _i
 
     def associateCompatibilityCheck(instance: TransformerCompatibilityCheck): TransformerCompatibilityCheck = {
         context.schema.associate(instance, _compatibilityCheckQuery)
+    }
+
+    def associateTransformerCompatibilityCheck(instance: TransformerToTransformerCompatibilityCheck): TransformerToTransformerCompatibilityCheck = {
+        context.schema.associate(instance, _compatibilityTransformerCheckQuery)
     }
 }

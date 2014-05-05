@@ -20,6 +20,9 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
     private lazy val compatibilityCheckRepository = new LazyTableRepository[TransformerCompatibilityCheck](
         schema.transformerCompatibilityChecks, TransformerCompatibilityCheck)
 
+    private lazy val compatibilityTransformerCheckRepository = new LazyTableRepository[TransformerToTransformerCompatibilityCheck](
+        schema.transformerToTransformerCompatibilityChecks, TransformerToTransformerCompatibilityCheck)
+
     /**
      * A repository to access persisted transformers
      */
@@ -69,6 +72,7 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
                     a.pluginInstances.map(pi => transformer.associatePluginInstance(TransformerPluginInstance(pi)))
                     a.pluginInstanceBindings.map(b => transformer.associatePluginInstanceBinding(TransformerPluginInstanceBinding(b)))
                     a.compatibilityChecks.map(c => transformer.associateCompatibilityCheck(TransformerCompatibilityCheck(c)))
+                    a.compatibilityTransformerChecks.map(d => transformer.associateTransformerCompatibilityCheck(TransformerToTransformerCompatibilityCheck(d)))
                     transformer.defaultOntologyCustomization = a.defaultOntologyCustomization
                 }
             }
@@ -89,6 +93,10 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
             compatibilityCheckRepository.removeById(compatibilityCheckId)
         }
 
+        def removeCompatibilityTransformerCheckById(compatibilityCheckId: String): Boolean = wrapInTransaction {
+            compatibilityTransformerCheckRepository.removeById(compatibilityCheckId)
+        }
+
         def loadPluginInstances(transformer: Transformer) {
             _loadTransformer(transformer)
         }
@@ -98,6 +106,10 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
         }
 
         def loadCompatibilityChecks(transformer: Transformer) {
+            _loadTransformer(transformer)
+        }
+
+        def loadCompatibilityTransformerChecks(transformer: Transformer) {
             _loadTransformer(transformer)
         }
 
@@ -112,6 +124,7 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
                         .map(p => (p.id, p.asInstanceOf[TransformerPluginInstance])).toMap
                 val instanceBindings = pluginInstanceBindingRepository.selectWhere(b => b.transformerId === transformer.id)
                 val compatibilityChecks = compatibilityCheckRepository.selectWhere(c => c.transformerId === transformer.id)
+                val compatibilityTransformerChecks = compatibilityTransformerCheckRepository.selectWhere(d => d.transformerId === transformer.id)
 
                 // Set plugin instances to bindings
                 instanceBindings.foreach {b =>
@@ -123,10 +136,15 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
                     c.sourcePluginInstance = pluginInstancesByIds(c.sourcePluginInstanceId)
                 }
 
+                compatibilityTransformerChecks.foreach {d =>
+                    d.sourcePluginInstance = pluginInstancesByIds(d.sourcePluginInstanceId)
+                }
+
                 // Set loaded plugins, plugin instances and its bindings to transformer, load default customization
                 transformer.pluginInstances = pluginInstancesByIds.values.toSeq
                 transformer.pluginInstanceBindings = instanceBindings
                 transformer.compatibilityChecks = compatibilityChecks
+                transformer.compatibilityTransformerChecks = compatibilityTransformerChecks
                 transformer.defaultOntologyCustomization = _getDefaultOntologyCustomization(transformer.defaultCustomizationId)
             }
         }

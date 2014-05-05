@@ -442,7 +442,7 @@ class AnalysisBuilder(parentElementId: String) extends Presenter
                 err =>
                     fatalErrorHandler(err)
             }
-            val x:Int = allSources.count(_ => true)
+            val x:Int = allSources.length
             var y:Int = 0
             var z:Int = 0
             allSources.map{

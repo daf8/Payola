@@ -29,6 +29,8 @@ class Transformer(protected var _name: String, protected var _owner: Option[User
 
     type TransformerCompatibilityCheckType = TransformerCompatibilityCheck
 
+    type TransformerToTransformerCompatibilityCheckType = TransformerToTransformerCompatibilityCheck
+
     type InstanceBindings = Map[TransformerPluginInstance, Seq[TransformerPluginInstanceBinding]]
 
     type OntologyCustomizationType = OntologyCustomization
@@ -285,10 +287,27 @@ class Transformer(protected var _name: String, protected var _owner: Option[User
     /**
      * Adds a new compatible plugin instance and data source.
      * @param sourcePluginInstance The source plugin instance.
-     * @param compatibleDataSource The compatible data source.
+     * @param compatibleAnalysis The compatible data source.
      */
-    def addChecking(sourcePluginInstance: TransformerPluginInstance, compatibleDataSource: DataSource) {
-        addChecking(new TransformerCompatibilityCheck(sourcePluginInstance, compatibleDataSource))
+    def addChecking(sourcePluginInstance: TransformerPluginInstance, compatibleAnalysis: Analysis) {
+        addChecking(new TransformerCompatibilityCheck(sourcePluginInstance, compatibleAnalysis))
+    }
+
+    /**
+     * Adds a new compatibility check to the transformer.
+     * @param checking The plugin instance binding to add.
+     */
+    def addTransformerChecking(checking: TransformerToTransformerCompatibilityCheckType) {
+        storeTransformerChecking(checking)
+    }
+
+    /**
+     * Adds a new compatible plugin instance and data source.
+     * @param sourcePluginInstance The source plugin instance.
+     * @param compatibleTransformer The compatible data source.
+     */
+    def addTransformerChecking(sourcePluginInstance: TransformerPluginInstance, compatibleTransformer: Transformer) {
+        addTransformerChecking(new TransformerToTransformerCompatibilityCheck(sourcePluginInstance, compatibleTransformer))
     }
 
     /**
@@ -338,6 +357,17 @@ class Transformer(protected var _name: String, protected var _owner: Option[User
     def removeChecking(checking: TransformerCompatibilityCheckType): Option[TransformerCompatibilityCheckType] = {
         ifContains(compatibilityChecks, checking) {
             discardChecking(checking)
+        }
+    }
+
+    /**
+     * Removes the specified compatibility check from the transformer.
+     * @param checking The compatibility check to be removed.
+     * @return The removed compatibility check.
+     */
+    def removeTransformerChecking(checking: TransformerToTransformerCompatibilityCheckType): Option[TransformerToTransformerCompatibilityCheckType] = {
+        ifContains(compatibilityTransformerChecks, checking) {
+            discardTransformerChecking(checking)
         }
     }
 

@@ -47,7 +47,6 @@ class PluginDialog(plugins: Seq[Plugin]) extends Modal("Choose a type of plugin"
 
     private val createDcvPlugin = new Paragraph(List(new Text("... or "),createDcvPluginAnchor,new Text(" a new DataCube Vocabulary plugin")))
     private val createAnalysisPlugin = new Paragraph(List(new Text("... or "),createAnalysisPluginAnchor,new Text(" a new plugin from an existing analysis")))
-    //private val createTransformerPlugin = new Paragraph(List(new Text("... or "),createTransformerPluginAnchor,new Text(" a new plugin from an existing transformer")))
 
     override val body = {
         if (plugins.exists(_.inputCount > 0)){

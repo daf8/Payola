@@ -94,6 +94,8 @@ class TransformerBuilder(parentElementId: String) extends Presenter
                                         bindMenuEvents(view, transformer)
                                         nameDialog.unblock()
                                         nameDialog.destroy()
+
+                                        onPluginNameClicked(allPlugins.filter(_.name == "Input").head,None,view,transformer)
                                 })
                         } {
                             error =>
@@ -170,35 +172,6 @@ class TransformerBuilder(parentElementId: String) extends Presenter
         }
     }
 
-    private def onCreateTransformerPluginClicked(view: TransformerEditorView,
-        transformer: Transformer){
-
-        val dialog = new TransformerPluginDialog()
-
-        dialog.confirming += { evtArgs =>
-            val transformerId = dialog.getChosenTransformerID
-            dialog.destroy()
-            blockPage("Cloning the selected transformer")
-
-            DomainData.cloneTransformer(transformerId){ clonedTransformer =>
-                unblockPage()
-                val transformerDialog = new TransformerParamSelectorDialog(clonedTransformer)
-                transformerDialog.confirming += { e =>
-                    createTransformerPluginAndInsert(transformerDialog.paramIds, clonedTransformer.id, view, transformer)
-                    transformerDialog.destroy()
-                    false
-                }
-
-                transformerDialog.render()
-
-            } { _ => unblockPage() }
-            false
-        }
-
-        dialog.render()
-
-    }
-
     private def onCreateDataCubePluginClicked(predecessor: TransformerPluginInstanceView, view: TransformerEditorView,
         transformer: Transformer) {
         val dialog = new DataCubeDialog()
@@ -242,13 +215,6 @@ class TransformerBuilder(parentElementId: String) extends Presenter
         }
 
         dialog.render()
-    }
-
-    private def createTransformerPluginAndInsert(paramIds: Seq[(String, String)], transformerId: String, view: TransformerEditorView, transformer: Transformer){
-        blockPage("Creating the plugin")
-        PluginManager.createTransformerInstance(paramIds.map{ t => t._1+":~:"+t._2 }, transformerId){
-            plugin => onPluginNameClicked(plugin, None, view, transformer)
-        } { _ => unblockPage() }
     }
 
     private def createDataCubePluginAndInsert(dataStructureDefiniton: DataCubeDataStructureDefinition,
@@ -358,32 +324,14 @@ class TransformerBuilder(parentElementId: String) extends Presenter
     protected def onAskClicked(view: TransformerEditorView,
         transformer: Transformer): (EventArgs[TransformerPluginInstanceView]) => Unit = {
         evt =>
-            blockPage("Checking data sources with ASK query")
-            TransformerBuilderData.removeChecks(transformerId,evt.target.getId){
+            blockPage("Checking analyses and transformers with ASK query")
+            TransformerBuilderData.checkInput(transformerId,evt.target.getId){
                 r =>
+                    AlertModal.display("Analyses and transformers check successful","Available analyses and transformers: "+r)
+                    unblockPage()
             }{
                 err =>
                     fatalErrorHandler(err)
-            }
-            val x:Int = allSources.count(_ => true)
-            var y:Int = 0
-            var z:Int = 0
-            allSources.map{
-                s =>
-                    TransformerBuilderData.checkDataSource(transformerId,s.id,evt.target.getId){
-                        r =>
-                            y=y+1
-                            if(r){
-                                z=z+1
-                            }
-                            if (x==y){
-                                AlertModal.display("Data source check successful","Available data sources: "+z)
-                                unblockPage()
-                            }
-                    }{
-                        err =>
-                            fatalErrorHandler(err)
-                    }
             }
             false
     }
@@ -495,49 +443,11 @@ class TransformerBuilder(parentElementId: String) extends Presenter
         """)
     protected def bindTtlFileChanged(view: TransformerEditorView) {    }
 
-    protected def bindAddPluginClicked(view: TransformerEditorView, transformer: Transformer) {
-        view.addPluginLink.mouseClicked += {
-            _ =>
-                blockPage("Checking available plugins...")
-                TransformerBuilderData.getTransformer(transformerId) {
-                    t =>
-                        if(t.pluginInstances.length==0) {
-                            val dialog = new
-                                    PluginDialog(
-                                        allPlugins.filter(_.inputCount == 0).filterNot(_.name == "Payola Private Storage"))
-                            dialog.pluginNameClicked += {
-                                evtArgs =>
-                                    onPluginNameClicked(evtArgs.target, None, view, transformer)
-                                    dialog.destroy()
-                                    false
-                            }
-
-                            dialog.createTransformerPluginClicked += {
-                                evtArgs =>
-                                    dialog.destroy()
-                                    onCreateTransformerPluginClicked(view, transformer)
-                                    false
-                            }
-
-                            dialog.render()
-                        } else {
-                            AlertModal.display("Transformer can have only one input", "To add another plugin into the pipeline press 'Add Connection' button at the last plugin.")
-                        }
-                        unblockPage()
-                }{
-                    err =>
-                        fatalErrorHandler(err)
-                }
-                false
-        }
-    }
-
     protected def bindMenuEvents(view: TransformerEditorView, transformer: Transformer) {
         bindDescriptionChanged(view)
         bindTtlChanged(view)
         bindTtlFileChanged(view)
         bindTtlFileTtlChanged(view)
         bindNameChanged(view)
-        bindAddPluginClicked(view, transformer)
     }
 }

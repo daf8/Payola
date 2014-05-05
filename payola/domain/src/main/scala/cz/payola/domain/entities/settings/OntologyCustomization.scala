@@ -32,7 +32,7 @@ object OntologyCustomization
 
              new OntologyCustomization("", ontologyURLs.mkString(","), name, owner, classCustomizations.toList)
         } catch {
-            case _ => throw new ValidationException("ontologyURL", "Couldn't fetch an ontology from one of the specified URLs.")
+            case _ => throw new ValidationException("ontologyURL", ",Couldn't fetch an ontology from one of the specified URLs.")
         }
     }
 }

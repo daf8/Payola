@@ -27,15 +27,15 @@ class EditableTransformerPluginInstanceView(pluginInst: TransformerPluginInstanc
 
     def getSourceViews: Seq[View] = {
         if(pluginInstance.plugin.name=="Input") {
-            val askButton = new Button(new Text("Executa ASK query on datasources"))
+            val askButton = new Button(new Text("Execute ASK query on analyses and transformers"))
             askButton.mouseClicked += { e =>
                 askButtonClicked.triggerDirectly(this)
                 false
             }
-            //val selectSource = new InputControl(
-            //    "Available data sources:", new Select("", "", "", /*PluginManager.getAccessibleDataFetchers().map(p => List(new SelectOption(p.className, p.id)))*/List(/*new SelectOption(pluginInstance.plugin.name,"a")*/), "form-control"), None, None)
-            List(askButton)//,selectSource)
-        }else{List()}
+            List(askButton)
+        } else {
+            List()
+        }
     }
 
     def getAdditionalControlsViews: Seq[View] = {

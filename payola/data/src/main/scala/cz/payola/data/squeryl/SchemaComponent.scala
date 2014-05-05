@@ -98,6 +98,9 @@ trait SchemaComponent
         /**Table of [[entities.transformers.TransformerCompatibilityCheck]]s */
         val transformerCompatibilityChecks = table[TransformerCompatibilityCheck]("transformerCompatibilityCheck")
 
+        /**Table of [[entities.transformers.TransformerToTransformerCompatibilityCheck]]s */
+        val transformerToTransformerCompatibilityChecks = table[TransformerToTransformerCompatibilityCheck]("transformerToTransformerCompatibilityCheck")
+
         /**Table of [[cz.payola.data.squeryl.entities.analyses.DataSource]]s */
         val dataSources = table[DataSource]("dataSources")
 
@@ -228,6 +231,13 @@ trait SchemaComponent
             (t, cc) => t.id === cc.transformerId)
 
         /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.transformers.TransformerToTransformerCompatibilityCheck]] to an
+         * [[cz.payola.data.squeryl.entities.Transformer]]
+         */
+        lazy val transformersToTransformerCompatibilityChecks = oneToManyRelation(transformers, transformerToTransformerCompatibilityChecks).via(
+            (t, cc) => t.id === cc.transformerId)
+
+        /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
          * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
          */
@@ -242,11 +252,32 @@ trait SchemaComponent
             (pi, cc) => pi.id === cc.sourcePluginInstanceId)
 
         /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
+         */
+        lazy val checkingsOfSourceTransformerToTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, transformerToTransformerCompatibilityChecks).via(
+            (pi, cc) => pi.id === cc.sourcePluginInstanceId)
+
+        /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
          * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
          */
         lazy val checkingsOfCompatibleDataSources = oneToManyRelation(dataSources, compatibilityChecks).via(
             (ds, cc) => ds.id === cc.compatibleDataSourceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         */
+        lazy val checkingsOfCompatibleAnalysis = oneToManyRelation(analyses, transformerCompatibilityChecks).via(
+            (a, cc) => a.id === cc.compatibleAnalysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         */
+        lazy val checkingsOfCompatibleTransformer = oneToManyRelation(transformers, transformerToTransformerCompatibilityChecks).via(
+            (t, cc) => t.id === cc.compatibleTransformerId)
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
@@ -499,6 +530,9 @@ trait SchemaComponent
             factoryFor(transformerCompatibilityChecks) is {
                 new TransformerCompatibilityCheck("", null, null)
             },
+            factoryFor(transformerToTransformerCompatibilityChecks) is {
+                new TransformerToTransformerCompatibilityCheck("", null, null)
+            },
             factoryFor(booleanParameters) is {
                 new BooleanParameter("", "", false, None)
             },
@@ -635,10 +669,19 @@ trait SchemaComponent
             on(transformerCompatibilityChecks)(checking =>
                 declare(
                     checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
-                    checking.compatibleDataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    checking.compatibleAnalysisId is (dbType(COLUMN_TYPE_ID)),
                     checking.sourcePluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     checking.transformerId is (dbType(COLUMN_TYPE_ID)),
-                    columns(checking.compatibleDataSourceId, checking.sourcePluginInstanceId) are (unique)
+                    columns(checking.compatibleAnalysisId, checking.sourcePluginInstanceId) are (unique)
+                ))
+
+            on(transformerToTransformerCompatibilityChecks)(checking =>
+                declare(
+                    checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    checking.compatibleTransformerId is (dbType(COLUMN_TYPE_ID)),
+                    checking.sourcePluginInstanceId is (dbType(COLUMN_TYPE_ID)),
+                    checking.transformerId is (dbType(COLUMN_TYPE_ID)),
+                    columns(checking.compatibleTransformerId, checking.sourcePluginInstanceId) are (unique)
                 ))
 
             on(booleanParameterValues)(param =>
@@ -878,7 +921,10 @@ trait SchemaComponent
             // When PluginInstance is deleted, delete all its Source/Target bindings.
             checkingsOfSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             checkingsOfSourceTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            checkingsOfSourceTransformerToTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             checkingsOfCompatibleDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            checkingsOfCompatibleAnalysis.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            checkingsOfCompatibleTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When DataSource is deleted, delete all associated ParameterValues.
             booleanParameterValuesOfDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)

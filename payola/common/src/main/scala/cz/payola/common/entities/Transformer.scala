@@ -19,8 +19,11 @@ trait Transformer extends Entity with NamedEntity with OptionallyOwnedEntity wit
     /** Type of the bindings between analytical plugin instances. */
     type TransformerPluginInstanceBindingType <: TransformerPluginInstanceBinding
 
-    /** Type of the compatibility check between plugin instance and data source. */
+    /** Type of the compatibility check between plugin instance and analysis. */
     type TransformerCompatibilityCheckType <: TransformerCompatibilityCheck
+
+    /** Type of the compatibility check between plugin instance and transformer. */
+    type TransformerToTransformerCompatibilityCheckType <: TransformerToTransformerCompatibilityCheck
 
     /** Type of the ontology customization for transformer */
     type OntologyCustomizationType <: settings.OntologyCustomization
@@ -30,6 +33,8 @@ trait Transformer extends Entity with NamedEntity with OptionallyOwnedEntity wit
     protected var _pluginInstanceBindings = mutable.ArrayBuffer[TransformerPluginInstanceBindingType]()
 
     protected var _compatibilityChecks = mutable.ArrayBuffer[TransformerCompatibilityCheckType]()
+
+    protected var _compatibilityTransformerChecks = mutable.ArrayBuffer[TransformerToTransformerCompatibilityCheckType]()
 
     protected var _defaultCustomization: Option[OntologyCustomizationType] = None
 
@@ -43,6 +48,9 @@ trait Transformer extends Entity with NamedEntity with OptionallyOwnedEntity wit
 
     /** Bindings between the analytical plugin instances. */
     def compatibilityChecks: immutable.Seq[TransformerCompatibilityCheckType] = _compatibilityChecks.toList
+
+    /** Bindings between the analytical plugin instances. */
+    def compatibilityTransformerChecks: immutable.Seq[TransformerToTransformerCompatibilityCheckType] = _compatibilityTransformerChecks.toList
 
     /** Default ontology customization for this transformer */
     def defaultOntologyCustomization = _defaultCustomization
@@ -86,6 +94,14 @@ trait Transformer extends Entity with NamedEntity with OptionallyOwnedEntity wit
     }
 
     /**
+     * Stores the specified check to the transformer.
+     * @param checking Plugin instance compatibility with data source
+     */
+    protected def storeTransformerChecking(checking: TransformerToTransformerCompatibilityCheckType) {
+        _compatibilityTransformerChecks += checking
+    }
+
+    /**
      * Discards the specified plugin instance from the transformer. Complementary operation to store.
      * @param binding The plugin instance binding to discard.
      */
@@ -99,5 +115,13 @@ trait Transformer extends Entity with NamedEntity with OptionallyOwnedEntity wit
      */
     protected def discardChecking(checking: TransformerCompatibilityCheckType) {
         _compatibilityChecks -= checking
+    }
+
+    /**
+     * Discards the specified compatibility check from the transformer. Complementary operation to store.
+     * @param checking The compatibility check to discard.
+     */
+    protected def discardTransformerChecking(checking: TransformerToTransformerCompatibilityCheckType) {
+        _compatibilityTransformerChecks -= checking
     }
 }
