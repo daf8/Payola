@@ -11,6 +11,8 @@ import cz.payola.web.client.views.bootstrap.modals.FatalErrorModal
 
 class SelectResultPluginView(prefixApplier: Option[PrefixApplier]) extends TablePluginView("Select Result Table", prefixApplier)
 {
+    override val ask = "ASK {?s ?p ?o}"
+
     private var variables = mutable.ListBuffer.empty[String]
 
     private var solutions = mutable.HashMap.empty[String, mutable.ListBuffer[Binding]]

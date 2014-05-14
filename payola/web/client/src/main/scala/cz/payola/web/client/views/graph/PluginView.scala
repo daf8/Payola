@@ -12,6 +12,8 @@ import cz.payola.common.rdf.Graph
  */
 abstract class PluginView[B](val name: String, private val prefixApplier: Option[PrefixApplier]) extends GraphView with ComposedView
 {
+    val ask: String = "ASK {}"
+
     /**
      * Renders the plugin-specific controls.
      * @param toolbar The toolbar element where the controls should be rendered.

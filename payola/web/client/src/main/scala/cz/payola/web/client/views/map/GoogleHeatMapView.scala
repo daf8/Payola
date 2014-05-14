@@ -12,6 +12,7 @@ import cz.payola.web.client.views.map.facets.MapFacet
  */
 class GoogleHeatMapView(prefixApplier: Option[PrefixApplier] = None) extends MapView(prefixApplier) {
 
+    override val ask = "ASK {?s ?p ?o}"
     override val name = "Google HeatMap"
 
     def createLibWrapper(element: Element) = {

@@ -13,6 +13,8 @@ import cz.payola.common.rdf
 
 class ColumnChartPluginView(prefixApplier: Option[PrefixApplier]) extends PluginView[rdf.Graph]("Column Chart", prefixApplier)
 {
+    override val ask = "ASK {?s ?p ?o}"
+
     private val chartWrapper = new Div
     chartWrapper.id = "chart-wrapper"
 

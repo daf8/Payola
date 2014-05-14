@@ -16,7 +16,7 @@ import cz.payola.web.client.views.bootstrap.modals.FatalErrorModal
  */
 class TripleTablePluginView(prefixApplier: Option[PrefixApplier]) extends TablePluginView("Triple Table", prefixApplier)
 {
-
+    override val ask = "ASK {?s ?p ?o}"
     private val countOfProperties = 5
     private val showMoreLabel = "Show more"
     private val currentVertexTitle = "Current vertex"

@@ -11,6 +11,7 @@ import cz.payola.web.client.views.map.facets.MapFacet
  */
 class GoogleMapView(prefixApplier: Option[PrefixApplier] = None) extends MapView(prefixApplier) {
 
+    override val ask = "ASK {?s ?p ?o}"
     override val name = "Google Map"
 
     def createLibWrapper(element: Element) = {

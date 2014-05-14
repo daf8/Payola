@@ -19,6 +19,8 @@ import cz.payola.web.client.models.PrefixApplier
  */
 class GravityTechnique(prefixApplier: Option[PrefixApplier]) extends BaseTechnique("Gravity Visualization", prefixApplier)
 {
+    override val ask = "ASK {?s ?p ?o}"
+
     /**
      * How much vertices push away each other
      */

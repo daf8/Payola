@@ -12,6 +12,7 @@ import cz.payola.web.client.views.map.facets.MapFacet
  */
 class ArcGisMapView(prefixApplier: Option[PrefixApplier] = None) extends MapView(prefixApplier) {
 
+    override val ask = "ASK {?s ?p ?o}"
     override val name = "ArcGis Map"
 
     def createLibWrapper(element: Element) = {

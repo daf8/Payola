@@ -13,6 +13,7 @@ import cz.payola.web.client.views.bootstrap.modals.FatalErrorModal
  */
 class Sunburst(prefixApplier: Option[PrefixApplier] = None) extends PluginView[Any]("Sunburst", prefixApplier) {
 
+    override val ask = "ASK {?s ?p ?o}"
     val d3Placeholder = new Div(List())
     val placeholder = new Div(List(d3Placeholder))
     d3Placeholder.setAttribute("id","d3-placeholder")

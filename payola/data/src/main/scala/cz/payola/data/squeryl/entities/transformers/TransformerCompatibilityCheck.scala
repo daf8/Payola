@@ -1,6 +1,5 @@
 package cz.payola.data.squeryl.entities.transformers
 
-//import cz.payola.common.entities._
 import cz.payola.data.squeryl._
 import cz.payola.data.squeryl.entities._
 import cz.payola.data.squeryl.entities.plugins.DataSource

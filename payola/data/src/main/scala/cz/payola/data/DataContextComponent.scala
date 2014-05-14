@@ -6,6 +6,7 @@ import cz.payola.domain.entities._
 import cz.payola.domain.entities.plugins._
 import cz.payola.domain.entities.settings.Customization
 import cz.payola.domain.entities.Prefix
+import cz.payola.domain.entities.Visualizer
 
 /**
  * A component that provides access to a storage with persisted entities.
@@ -68,6 +69,11 @@ trait DataContextComponent
     val transformerResultRepository: TransformerResultRepository
 
     /**
+     * A repository to access persisted visualizers
+     */
+    val visualizerRepository: VisualizerRepository
+
+    /**
      * A registry that provides repositories by class name of persisted entity
      */
     lazy val repositoryRegistry = new RepositoryRegistry(Map(
@@ -79,7 +85,8 @@ trait DataContextComponent
         classOf[Plugin] -> pluginRepository,
         classOf[DataSource] -> dataSourceRepository,
         classOf[Customization] -> customizationRepository,
-        classOf[Prefix] -> prefixRepository
+        classOf[Prefix] -> prefixRepository,
+        classOf[Visualizer] -> visualizerRepository
     ))
 
     /**
@@ -284,6 +291,26 @@ trait DataContextComponent
          * @param parameterValue ParameterValue to persist
          */
         def persistParameterValue(parameterValue: ParameterValue[_])
+    }
+
+    /**
+     * Defines operations of repository accessing visualizer
+     */
+    trait VisualizerRepository
+        extends Repository[Visualizer]
+        with NamedEntityRepository[Visualizer]
+        with OptionallyOwnedEntityRepository[Visualizer]
+        with ShareableEntityRepository[Visualizer]
+    {
+        //def removeCompatibilityAnalysisCheckById(compatibilityCheckId: String): Boolean
+
+        //def removeCompatibilityTransformerCheckById(compatibilityCheckId: String): Boolean
+
+        //def loadCompatibilityAnalysisChecks(visualizer: Visualizer)
+
+        //def loadCompatibilityTransformerChecks(visualizer: Visualizer)
+
+        //def persistParameterValue(parameterValue: ParameterValue[_])
     }
 
     /**

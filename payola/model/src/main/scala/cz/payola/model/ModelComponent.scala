@@ -21,6 +21,7 @@ trait ModelComponent
     with DataCubeModelComponent
     with GeocodeModelComponent
     with PrefixModelComponent
+    with VisualizerModelComponent
 {
     self: DataContextComponent with RdfStorageComponent with PluginCompilerComponent =>
 

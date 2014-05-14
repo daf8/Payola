@@ -12,6 +12,8 @@ import cz.payola.web.client.models.PrefixApplier
  */
 class CircleTechnique(prefixApplier: Option[PrefixApplier]) extends BaseTechnique("Circle Visualization", prefixApplier)
 {
+    override val ask = "ASK {?s ?p ?o}"
+
     protected def getTechniquePerformer(component: Component,
         animate: Boolean): Animation[_] = {
         if (animate) {

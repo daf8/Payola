@@ -26,6 +26,7 @@ import cz.payola.web.client.views.bootstrap.modals.FatalErrorModal
  */
 class Generic(prefixApplier: Option[PrefixApplier] = None) extends PluginView[Graph]("DataCube Universal", prefixApplier) {
 
+    override val ask = "ASK {?s ?p ?o}"
     val controlsHolder = new Div(List(), "col-lg-4 dcv-controlsholder")
     val graphHolder = new Div(List(), "col-lg-8 dcv-graphholder")
     val placeholder = new Div(List(controlsHolder, graphHolder),"dcv-placeholder")

@@ -13,6 +13,8 @@ import cz.payola.web.client.models.PrefixApplier
  */
 class TreeTechnique(prefixApplier: Option[PrefixApplier] = None) extends BaseTechnique("Tree Visualization", prefixApplier)
 {
+    override val ask = "ASK {?s ?p ?o}"
+
     protected def getTechniquePerformer(component: Component,
         animate: Boolean): Animation[_] = {
 

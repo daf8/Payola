@@ -18,6 +18,7 @@ import cz.payola.web.client.View
 
 class GraphSigmaPluginView(prefixApplier: Option[PrefixApplier]) extends SigmaPluginView("Sigma.js", prefixApplier) {
 
+    override val ask = "ASK {?s ?p ?o}"
     val popUp: Any = null //used only in the javascript of functions showVertexInfo and hideVertexInfo
     val popUpWidth = 300
     val popUpHeight = 300

@@ -25,6 +25,7 @@ trait SquerylDataContextComponent
     with PrefixRepositoryComponent
     with AnalysisResultRepositoryComponent
     with TransformerResultRepositoryComponent
+    with VisualizerRepositoryComponent
 {
     self: RdfStorageComponent with PluginCompilerComponent =>
     /**

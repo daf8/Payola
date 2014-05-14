@@ -53,6 +53,9 @@ trait SchemaComponent
         /**Table of [[cz.payola.data.squeryl.entities.Transformer]] items */
         val transformers = table[Transformer]("transformers")
 
+        /**Table of [[cz.payola.data.squeryl.entities.Visualizer]] items */
+        val visualizers = table[Visualizer]("visualizers")
+
         /**Table of [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]]s */
         val plugins = table[PluginDbRepresentation]("plugins")
 
@@ -100,6 +103,12 @@ trait SchemaComponent
 
         /**Table of [[entities.transformers.TransformerToTransformerCompatibilityCheck]]s */
         val transformerToTransformerCompatibilityChecks = table[TransformerToTransformerCompatibilityCheck]("transformerToTransformerCompatibilityCheck")
+
+        /**Table of [[entities.VisualizerToAnalysisCompatibilityCheck]]s */
+        val visualizerToAnalysisCompatibilityChecks = table[VisualizerToAnalysisCompatibilityCheck]("visualizerToAnalysisCompatibilityCheck")
+
+        /**Table of [[entities.VisualizerToTransformerCompatibilityCheck]]s */
+        val visualizerToTransformerCompatibilityChecks = table[VisualizerToTransformerCompatibilityCheck]("visualizerToTransformerCompatibilityCheck")
 
         /**Table of [[cz.payola.data.squeryl.entities.analyses.DataSource]]s */
         val dataSources = table[DataSource]("dataSources")
@@ -238,6 +247,20 @@ trait SchemaComponent
             (t, cc) => t.id === cc.transformerId)
 
         /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.VisualizerToAnalysisCompatibilityCheck]] to an
+         * [[cz.payola.data.squeryl.entities.Visualizer]]
+         */
+        lazy val visualizersToAnalysisCompatibilityChecks = oneToManyRelation(visualizers, visualizerToAnalysisCompatibilityChecks).via(
+            (v, cc) => v.id === cc.visualizerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.VisualizerToTransformerCompatibilityCheck]] to an
+         * [[cz.payola.data.squeryl.entities.Visualizer]]
+         */
+        lazy val visualizersToTransformerCompatibilityChecks = oneToManyRelation(visualizers, visualizerToTransformerCompatibilityChecks).via(
+            (v, cc) => v.id === cc.visualizerId)
+
+        /**
          * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
          * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
          */
@@ -277,6 +300,20 @@ trait SchemaComponent
          * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
          */
         lazy val checkingsOfCompatibleTransformer = oneToManyRelation(transformers, transformerToTransformerCompatibilityChecks).via(
+            (t, cc) => t.id === cc.compatibleTransformerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         */
+        lazy val visualizerCheckingsOfCompatibleAnalysis = oneToManyRelation(analyses, visualizerToAnalysisCompatibilityChecks).via(
+            (a, cc) => a.id === cc.compatibleAnalysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         */
+        lazy val visualizerCheckingsOfCompatibleTransformer = oneToManyRelation(transformers, visualizerToTransformerCompatibilityChecks).via(
             (t, cc) => t.id === cc.compatibleTransformerId)
 
         /**
@@ -509,6 +546,9 @@ trait SchemaComponent
             factoryFor(transformers) is {
                 new Transformer("", "", None, false, "", None, true)
             },
+            factoryFor(visualizers) is {
+                new Visualizer("", "", None, false)
+            },
             factoryFor(plugins) is {
                 new PluginDbRepresentation("", "", "", 0, None, false)
             },
@@ -532,6 +572,12 @@ trait SchemaComponent
             },
             factoryFor(transformerToTransformerCompatibilityChecks) is {
                 new TransformerToTransformerCompatibilityCheck("", null, null)
+            },
+            factoryFor(visualizerToAnalysisCompatibilityChecks) is {
+                new VisualizerToAnalysisCompatibilityCheck("", null, null)
+            },
+            factoryFor(visualizerToTransformerCompatibilityChecks) is {
+                new VisualizerToTransformerCompatibilityCheck("", null, null)
             },
             factoryFor(booleanParameters) is {
                 new BooleanParameter("", "", false, None)
@@ -594,6 +640,7 @@ trait SchemaComponent
             val COLUMN_TYPE_DESCRIPTION = "text"
             val COLUMN_TYPE_ASK = "text"
             val COLUMN_TYPE_TTL = "text"
+            val COLUMN_TYPE_VISUALIZER = "text"
             val COLUMN_TYPE_CHECKED = "boolean"
             val COLUMN_TYPE_LAST_CHECK = "bigint"
             val COLUMN_TYPE_URIS = "text"
@@ -682,6 +729,22 @@ trait SchemaComponent
                     checking.sourcePluginInstanceId is (dbType(COLUMN_TYPE_ID)),
                     checking.transformerId is (dbType(COLUMN_TYPE_ID)),
                     columns(checking.compatibleTransformerId, checking.sourcePluginInstanceId) are (unique)
+                ))
+
+            on(visualizerToAnalysisCompatibilityChecks)(checking =>
+                declare(
+                    checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    checking.compatibleAnalysisId is (dbType(COLUMN_TYPE_ID)),
+                    checking.visualizer is (dbType(COLUMN_TYPE_VISUALIZER))//,
+                    //columns(checking.compatibleAnalysisId, checking.visualizer) are (unique)
+                ))
+
+            on(visualizerToTransformerCompatibilityChecks)(checking =>
+                declare(
+                    checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    checking.compatibleTransformerId is (dbType(COLUMN_TYPE_ID)),
+                    checking.visualizer is (dbType(COLUMN_TYPE_VISUALIZER))//,
+                    //columns(checking.compatibleTransformerId, checking.visualizer) are (unique)
                 ))
 
             on(booleanParameterValues)(param =>
@@ -797,7 +860,7 @@ trait SchemaComponent
 
             on(transformers)(transformer =>
                 declare(
-                    transformer.id is(primaryKey, dbType(COLUMN_TYPE_ID)),
+                    transformer.id is (primaryKey, dbType(COLUMN_TYPE_ID)),
                     transformer.name is (dbType(COLUMN_TYPE_NAME)),
                     transformer.ownerId is (dbType(COLUMN_TYPE_ID)),
                     transformer.defaultCustomizationId is (dbType(COLUMN_TYPE_ID)),
@@ -808,6 +871,14 @@ trait SchemaComponent
                     transformer.lastCheck is (dbType(COLUMN_TYPE_LAST_CHECK)),
                     transformer.token is (dbType(COLUMN_TYPE_TOKEN)),
                     columns(transformer.name, transformer.ownerId) are (unique)
+                ))
+
+            on(visualizers)(visualizer =>
+                declare(
+                    visualizer.id is (primaryKey, dbType(COLUMN_TYPE_ID)),
+                    visualizer.name is (dbType(COLUMN_TYPE_NAME)),
+                    visualizer.ownerId is (dbType(COLUMN_TYPE_ID)),
+                    columns(visualizer.name, visualizer.ownerId) are (unique)
                 ))
 
             on(privileges)(p =>
@@ -886,7 +957,11 @@ trait SchemaComponent
             // When a Transformer is deleted, all of the its plugin instances and compatibility checks will get deleted.
             transformersPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             transformersCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            transformersToTransformerCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
             transformersPluginInstancesBindings.foreignKeyDeclaration.constrainReference(onDelete cascade)
+
+            visualizersToAnalysisCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            visualizersToTransformerCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When a Parameter is deleted, all of the its parameterValues will get deleted.
             valuesOfBooleanParameters.foreignKeyDeclaration.constrainReference(onDelete cascade)
@@ -925,6 +1000,8 @@ trait SchemaComponent
             checkingsOfCompatibleDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)
             checkingsOfCompatibleAnalysis.foreignKeyDeclaration.constrainReference(onDelete cascade)
             checkingsOfCompatibleTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            visualizerCheckingsOfCompatibleAnalysis.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            visualizerCheckingsOfCompatibleTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When DataSource is deleted, delete all associated ParameterValues.
             booleanParameterValuesOfDataSources.foreignKeyDeclaration.constrainReference(onDelete cascade)

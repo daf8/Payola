@@ -9,6 +9,8 @@ import cz.payola.web.client.views.bootstrap.modals.FatalErrorModal
 
 class DataCubeVisualizer(prefixApplier: Option[PrefixApplier] = None) extends PluginView[String]("DataCube", prefixApplier)
 {
+    override val ask = "ASK {?s ?p ?o}"
+    //override def ask = "ASK {?s ?p ?o}"
     def supportedDataFormat: String = "RDF/JSON"
 
     @javascript(
