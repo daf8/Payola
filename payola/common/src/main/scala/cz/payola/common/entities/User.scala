@@ -20,6 +20,9 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     /** Type of the analyses that the user can own. */
     type TransformerType <: Transformer
 
+    /** Type of the Visualizer that the user can own. */
+    type VisualizerType <: Visualizer
+
     /** Type of the data sources that the user can own. */
     type DataSourceType <: DataSource
 
@@ -41,6 +44,8 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     protected var _ownedAnalyses = mutable.ArrayBuffer[AnalysisType]()
 
     protected var _ownedTransformers = mutable.ArrayBuffer[TransformerType]()
+
+    protected var _ownedVisualizers = mutable.ArrayBuffer[VisualizerType]()
 
     protected var _ownedDataSources = mutable.ArrayBuffer[DataSourceType]()
 
@@ -78,8 +83,11 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     /** The analyses that are owned by the user. */
     def ownedAnalyses: immutable.Seq[AnalysisType] = _ownedAnalyses.toList
 
-    /** The analyses that are owned by the user. */
+    /** The transformers that are owned by the user. */
     def ownedTransformers: immutable.Seq[TransformerType] = _ownedTransformers.toList
+
+    /** The visualizers that are owned by the user. */
+    def ownedVisualizers: immutable.Seq[VisualizerType] = _ownedVisualizers.toList
 
     /** The data sources that are owned by the user. */
     def ownedDataSources: immutable.Seq[DataSourceType] = _ownedDataSources.toList
@@ -110,7 +118,7 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     }
 
     /**
-     * Stores the specified transformer to the users owned analyses.
+     * Stores the specified transformer to the users owned transformerss.
      * @param transformer The transformer to store.
      */
     protected def storeOwnedTransformer(transformer: TransformerType) {
@@ -118,11 +126,27 @@ trait User extends Entity with NamedEntity with PrivilegeableEntity
     }
 
     /**
-     * Discards the specified transformer from the users owned analyses. Complementary operation to store.
+     * Discards the specified transformer from the users owned transformerss. Complementary operation to store.
      * @param transformer The transformer to discard.
      */
     protected def discardOwnedTransformer(transformer: TransformerType) {
         _ownedTransformers -= transformer
+    }
+
+    /**
+     * Stores the specified visualizer to the users owned visualizers.
+     * @param visualizer The visualizer to store.
+     */
+    protected def storeOwnedVisualizer(visualizer: VisualizerType) {
+        _ownedVisualizers += visualizer
+    }
+
+    /**
+     * Discards the specified visualizer from the users owned visualizers. Complementary operation to store.
+     * @param visualizer The visualizer to discard.
+     */
+    protected def discardOwnedVisualizer(visualizer: VisualizerType) {
+        _ownedVisualizers -= visualizer
     }
 
     /**

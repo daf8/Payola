@@ -17,6 +17,12 @@ trait AccessAnalysisPrivilege extends Privilege[Analysis]
 trait AccessTransformerPrivilege extends Privilege[Transformer]
 
 /**
+ * The user may access the specified visualizer, so he can see the visualizer structure and the plugin instances it
+ * consists of, run the visualizer and browse the result.
+ */
+trait AccessVisualizerPrivilege extends Privilege[Visualizer]
+
+/**
   * The user may browser the specified data source and use it in his analyses.
   */
 trait AccessDataSourcePrivilege extends Privilege[DataSource]

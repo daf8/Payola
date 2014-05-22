@@ -1,0 +1,21 @@
+@(user: cz.payola.domain.entities.User, dataSource: cz.payola.domain.entities.plugins.DataSource)
+
+@main(Some(user), "Data source :: Payola!") {
+
+<div class="container-fluid">
+    <div class="row" style="padding-bottom: 20px;">
+        <h1 class="col-lg-8">Pipeline of data source: @dataSource.name</h1>
+        <a href="@routes.DataSource.detail(dataSource.id, None)" class="btn col-lg-2"><i class="glyphicon-globe"></i> Browse</a>
+    </div>
+
+    <div id="data-source-properties" class="row">
+    </div>
+</div>
+<script src="/javaScriptPackage/cz.payola.web.client.presenters.entity.plugins.DataSourcePipeline" type="text/javascript"></script>
+<script type="text/javascript">
+    new cz.payola.web.client.presenters.entity.plugins.DataSourcePipeline(
+            document.getElementById('data-source-properties'),
+            '@dataSource.id'
+    ).initialize();
+</script>
+}

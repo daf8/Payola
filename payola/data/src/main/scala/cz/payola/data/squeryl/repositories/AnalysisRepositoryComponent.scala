@@ -121,6 +121,7 @@ trait AnalysisRepositoryComponent extends TableRepositoryComponent
 
                 compatibilityChecks.foreach {c =>
                     c.sourcePluginInstance = pluginInstancesByIds(c.sourcePluginInstanceId)
+                    c.compatibleDataSource = dataSourceRepository.getById(c.compatibleDataSourceId).get
                 }
 
                 // Set loaded plugins, plugin instances and its bindings to analysis, load default customization

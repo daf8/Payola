@@ -26,6 +26,7 @@ VisualizerModelComponent extends EntityModelComponent
                     v.addAnalysisChecking(plugin, analysis)
             }.getOrElse {
                 val visualizer = new Visualizer(plugin, owner)
+                visualizer.isPublic = true
                 persist(visualizer)
                 visualizer.addAnalysisChecking(plugin, analysis)
             }
@@ -37,6 +38,7 @@ VisualizerModelComponent extends EntityModelComponent
                     a.addTransformerChecking(plugin, transformer)
             }.getOrElse {
                 val visualizer = new Visualizer(plugin, owner)
+                visualizer.isPublic = true
                 persist(visualizer)
                 visualizer.addTransformerChecking(plugin, transformer)
             }
@@ -53,8 +55,6 @@ VisualizerModelComponent extends EntityModelComponent
                         b =>
                             a.removeTransformerChecking(b)
                     }
-            }.getOrElse {
-                throw new Exception("Unknown transformer.")
             }
         }
 

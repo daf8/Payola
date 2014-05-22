@@ -16,6 +16,11 @@ class AccessTransformerPrivilege(granter: User, grantee: Entity with Privilegeab
     extends Privilege[Transformer](granter, grantee, transformer, id)
     with cz.payola.common.entities.privileges.AccessTransformerPrivilege
 
+class AccessVisualizerPrivilege(granter: User, grantee: Entity with PrivilegeableEntity, visualizer: Visualizer,
+    id: String = IDGenerator.newId)
+    extends Privilege[Visualizer](granter, grantee, visualizer, id)
+    with cz.payola.common.entities.privileges.AccessVisualizerPrivilege
+
 class AccessDataSourcePrivilege(granter: User, grantee: Entity with PrivilegeableEntity, dataSource: DataSource,
     id: String = IDGenerator.newId)
     extends Privilege[DataSource](granter, grantee, dataSource, id)

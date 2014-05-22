@@ -54,6 +54,7 @@ trait PrivilegeModelComponent extends EntityModelComponent
             Map(
                 Entity.getClassName(classOf[Analysis]) -> classOf[AccessAnalysisPrivilege],
                 Entity.getClassName(classOf[Transformer]) -> classOf[AccessTransformerPrivilege],
+                Entity.getClassName(classOf[Visualizer]) -> classOf[AccessVisualizerPrivilege],
                 Entity.getClassName(classOf[Plugin]) -> classOf[UsePluginPrivilege],
                 Entity.getClassName(classOf[DataSource]) -> classOf[AccessDataSourcePrivilege],
                 Entity.getClassName(classOf[Customization]) -> classOf[UseCustomizationPrivilege]
@@ -76,6 +77,7 @@ trait PrivilegeModelComponent extends EntityModelComponent
             objectEntity match {
                 case a: Analysis => new AccessAnalysisPrivilege(granter, grantee, a)
                 case t: Transformer => new AccessTransformerPrivilege(granter, grantee, t)
+                case t: Visualizer => new AccessVisualizerPrivilege(granter, grantee, t)
                 case p: Plugin => new UsePluginPrivilege(granter, grantee, p)
                 case d: DataSource => new AccessDataSourcePrivilege(granter, grantee, d)
                 case c: Customization => new UseCustomizationPrivilege(granter, grantee, c)

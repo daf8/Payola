@@ -5,8 +5,8 @@ import cz.payola.common.rdf._
 import cz.payola.common.entities._
 import cz.payola.common.entities.plugins.parameters._
 import cz.payola.common.entities.plugins._
-import cz.payola.common.entities.analyses.PluginInstanceBinding
-import cz.payola.common.entities.transformers.TransformerPluginInstanceBinding
+import cz.payola.common.entities.analyses._
+import cz.payola.common.entities.transformers._
 import cz.payola.common.entities.settings._
 import cz.payola.scala2json.rules.BasicSerializationRule
 import cz.payola.scala2json.classes.SimpleSerializationClass
@@ -33,7 +33,8 @@ class RPCSerializer extends JSONSerializer
         Some(classOf[Analysis]),
         Some(List(
             "_pluginInstances",
-            "_pluginInstanceBindings")
+            "_pluginInstanceBindings",
+            "_compatibilityChecks")
         )
     )
     this.addSerializationRule(analysisClass,analysisRule)
@@ -43,10 +44,22 @@ class RPCSerializer extends JSONSerializer
         Some(classOf[Transformer]),
         Some(List(
             "_pluginInstances",
-            "_pluginInstanceBindings")
+            "_pluginInstanceBindings",
+            "_compatibilityChecks",
+            "_compatibilityTransformerChecks")
         )
     )
     this.addSerializationRule(transformerClass,transformerRule)
+
+    val visualizerClass = new SimpleSerializationClass(classOf[Visualizer])
+    val visualizerRule = new BasicSerializationRule(
+        Some(classOf[Visualizer]),
+        Some(List(
+            "_compatibilityAnalysisChecks",
+            "_compatibilityTransformerChecks")
+        )
+    )
+    this.addSerializationRule(visualizerClass,visualizerRule)
 
     val analysisPluginInstances = new CustomValueSerializationRule[Analysis]("_pluginInstances", (serializer, analysis) => analysis.pluginInstances)
     this.addSerializationRule(analysisClass, analysisPluginInstances)
@@ -59,6 +72,21 @@ class RPCSerializer extends JSONSerializer
 
     val transformerPluginInstanceBindings = new CustomValueSerializationRule[Transformer]("_pluginInstanceBindings", (serializer, transformer) => transformer.pluginInstanceBindings)
     this.addSerializationRule(transformerClass, transformerPluginInstanceBindings)
+
+    val analysisCompatibilityChecks = new CustomValueSerializationRule[Analysis]("_compatibilityChecks", (serializer, analysis) => analysis.compatibilityChecks)
+    this.addSerializationRule(analysisClass, analysisCompatibilityChecks)
+
+    val transformerCompatibilityChecks = new CustomValueSerializationRule[Transformer]("_compatibilityChecks", (serializer, transformer) => transformer.compatibilityChecks)
+    this.addSerializationRule(transformerClass, transformerCompatibilityChecks)
+
+    val transformerToTransformerCompatibilityChecks = new CustomValueSerializationRule[Transformer]("_compatibilityTransformerChecks", (serializer, transformer) => transformer.compatibilityTransformerChecks)
+    this.addSerializationRule(transformerClass, transformerToTransformerCompatibilityChecks)
+
+    val visualizerToAnalysisCompatibilityChecks = new CustomValueSerializationRule[Visualizer]("_compatibilityAnalysisChecks", (serializer, visualizer) => visualizer.compatibilityAnalysisChecks)
+    this.addSerializationRule(visualizerClass, visualizerToAnalysisCompatibilityChecks)
+
+    val visualizerToTransformerCompatibilityChecks = new CustomValueSerializationRule[Visualizer]("_compatibilityTransformerChecks", (serializer, visualizer) => visualizer.compatibilityTransformerChecks)
+    this.addSerializationRule(visualizerClass, visualizerToTransformerCompatibilityChecks)
 
     val dataSourceClass = new SimpleSerializationClass(classOf[DataSource])
     val dataSourceRule = new BasicSerializationRule(Some(classOf[DataSource]))
@@ -80,6 +108,26 @@ class RPCSerializer extends JSONSerializer
     val pluginInstanceBindingClass = new SimpleSerializationClass(classOf[PluginInstanceBinding])
     val pluginInstanceBindingRule = new BasicSerializationRule(Some(classOf[PluginInstanceBinding]))
     this.addSerializationRule(pluginInstanceBindingClass, pluginInstanceBindingRule)
+
+    val compatibilityCheckClass = new SimpleSerializationClass(classOf[CompatibilityCheck])
+    val compatibilityCheckRule = new BasicSerializationRule(Some(classOf[CompatibilityCheck]))
+    this.addSerializationRule(compatibilityCheckClass, compatibilityCheckRule)
+
+    val transformerCompatibilityCheckClass = new SimpleSerializationClass(classOf[TransformerCompatibilityCheck])
+    val transformerCompatibilityCheckRule = new BasicSerializationRule(Some(classOf[TransformerCompatibilityCheck]))
+    this.addSerializationRule(transformerCompatibilityCheckClass, transformerCompatibilityCheckRule)
+
+    val transformerToTransformerCompatibilityCheckClass = new SimpleSerializationClass(classOf[TransformerToTransformerCompatibilityCheck])
+    val transformerToTransformerCompatibilityCheckRule = new BasicSerializationRule(Some(classOf[TransformerToTransformerCompatibilityCheck]))
+    this.addSerializationRule(transformerToTransformerCompatibilityCheckClass, transformerToTransformerCompatibilityCheckRule)
+
+    val visualizerToAnalysisCompatibilityCheckClass = new SimpleSerializationClass(classOf[VisualizerToAnalysisCompatibilityCheck])
+    val visualizerToAnalysisCompatibilityCheckRule = new BasicSerializationRule(Some(classOf[VisualizerToAnalysisCompatibilityCheck]))
+    this.addSerializationRule(visualizerToAnalysisCompatibilityCheckClass, visualizerToAnalysisCompatibilityCheckRule)
+
+    val visualizerToTransformerCompatibilityCheckClass = new SimpleSerializationClass(classOf[VisualizerToTransformerCompatibilityCheck])
+    val visualizerToTransformerCompatibilityCheckRule = new BasicSerializationRule(Some(classOf[VisualizerToTransformerCompatibilityCheck]))
+    this.addSerializationRule(visualizerToTransformerCompatibilityCheckClass, visualizerToTransformerCompatibilityCheckRule)
 
     val pluginInstanceBindingRuleSource = new CustomValueSerializationRule[PluginInstanceBinding]("_targetPluginInstance", (serializer, b) => b.targetPluginInstance)
     this.addSerializationRule(pluginInstanceBindingClass, pluginInstanceBindingRuleSource)

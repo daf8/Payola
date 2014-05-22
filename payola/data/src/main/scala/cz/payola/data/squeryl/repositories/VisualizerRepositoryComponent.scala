@@ -68,6 +68,14 @@ trait VisualizerRepositoryComponent extends TableRepositoryComponent
                 val compatibilityAnalysisChecks = compatibilityAnalysisCheckRepository.selectWhere(c => c.visualizerId === visualizer.id)
                 val compatibilityTransformerChecks = compatibilityTransformerCheckRepository.selectWhere(d => d.visualizerId === visualizer.id)
 
+                compatibilityAnalysisChecks.foreach {c =>
+                    c.compatibleAnalysis = analysisRepository.getById(c.compatibleAnalysisId).get
+                }
+
+                compatibilityTransformerChecks.foreach {d =>
+                    d.compatibleTransformer = transformerRepository.getById(d.compatibleTransformerId).get
+                }
+
                 visualizer.compatibilityAnalysisChecks = compatibilityAnalysisChecks
                 visualizer.compatibilityTransformerChecks = compatibilityTransformerChecks
             }

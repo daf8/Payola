@@ -547,7 +547,7 @@ trait SchemaComponent
                 new Transformer("", "", None, false, "", None, true)
             },
             factoryFor(visualizers) is {
-                new Visualizer("", "", None, false)
+                new Visualizer("", "", None, true)
             },
             factoryFor(plugins) is {
                 new PluginDbRepresentation("", "", "", 0, None, false)

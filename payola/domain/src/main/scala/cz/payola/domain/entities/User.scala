@@ -26,6 +26,8 @@ class User(protected var _name: String)
 
     type TransformerType = Transformer
 
+    type VisualizerType = Visualizer
+
     type DataSourceType = DataSource
 
     type PluginType = Plugin
@@ -66,6 +68,23 @@ class User(protected var _name: String)
      */
     def removeOwnedTransformer(transformer: TransformerType): Option[TransformerType] = {
         removeRelatedEntity(transformer, ownedTransformers, discardOwnedTransformer)
+    }
+
+    /**
+     * Adds the transformer to the users owned analyses. The transformer has to be owned by the user.
+     * @param visualizer Transformer to be added.
+     */
+    def addOwnedVisualizer(visualizer: VisualizerType) {
+        addOwnedEntity(visualizer, ownedVisualizers, storeOwnedVisualizer)
+    }
+
+    /**
+     * Removes the specified transformer from the users owned analyses.
+     * @param visualizer The transformer to be removed.
+     * @return The removed transformer.
+     */
+    def removeOwnedVisualizer(visualizer: VisualizerType): Option[VisualizerType] = {
+        removeRelatedEntity(visualizer, ownedVisualizers, discardOwnedVisualizer)
     }
 
     /**
@@ -143,6 +162,7 @@ class User(protected var _name: String)
         Map(
             Entity.getClassName(classOf[Analysis]) -> ownedAnalyses,
             Entity.getClassName(classOf[Transformer]) -> ownedTransformers,
+            Entity.getClassName(classOf[Visualizer]) -> ownedVisualizers,
             Entity.getClassName(classOf[DataSource]) -> ownedDataSources,
             Entity.getClassName(classOf[Plugin]) -> ownedPlugins,
             Entity.getClassName(classOf[Customization]) -> ownedCustomizations,

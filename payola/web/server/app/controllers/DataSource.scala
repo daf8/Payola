@@ -119,6 +119,20 @@ object DataSource extends PayolaController with Secured
         }
     }
 
+    /** Shows a pipeline page of the data source.
+      *
+      * @param id ID of the data source.
+      * @return Edit page of the data source or 404 if the resource doesn't exist.
+      */
+    def pipeline(id: String) = authenticated { user: User =>
+        val dataSourceOpt = Payola.model.dataSourceModel.getAccessibleToUserById(Some(user), id)
+        if (dataSourceOpt.isDefined && dataSourceOpt.get.isEditable) {
+            Ok(views.html.datasource.pipeline(user, dataSourceOpt.get))
+        }else{
+            NotFound(views.html.errors.err404("The data source does not exist."))
+        }
+    }
+
     /** Lists owned data sources of the user.
       *
       * @return Listing page.

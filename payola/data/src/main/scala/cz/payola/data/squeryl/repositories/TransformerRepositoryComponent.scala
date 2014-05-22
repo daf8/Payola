@@ -134,10 +134,12 @@ trait TransformerRepositoryComponent extends TableRepositoryComponent
 
                 compatibilityChecks.foreach {c =>
                     c.sourcePluginInstance = pluginInstancesByIds(c.sourcePluginInstanceId)
+                    c.compatibleAnalysis = analysisRepository.getById(c.compatibleAnalysisId).get
                 }
 
                 compatibilityTransformerChecks.foreach {d =>
                     d.sourcePluginInstance = pluginInstancesByIds(d.sourcePluginInstanceId)
+                    d.compatibleTransformer = transformerRepository.getById(d.compatibleTransformerId).get
                 }
 
                 // Set loaded plugins, plugin instances and its bindings to transformer, load default customization
