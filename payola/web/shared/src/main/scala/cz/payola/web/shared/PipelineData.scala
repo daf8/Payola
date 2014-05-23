@@ -63,7 +63,7 @@ import cz.payola.common.entities.plugins._
         )
     }
 
-    def transformerRecurse(tID: String, analysis: String, prev: String, user: User): List[List[String]] = {
+    def transformerRecurse(tID: String, analysis: String, prev: String, transformersIds: List[String], user: User): List[List[String]] = {
         var rows: List[List[String]] = List()
         val transformers = Payola.model.transformerModel.getAccessibleToUser(Some(user)).filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
             a.compatibilityTransformerChecks.map { b =>
@@ -71,14 +71,19 @@ import cz.payola.common.entities.plugins._
             }.reduceLeft((a,b) => a || b)
         }
         transformers.map { t =>
-            rows ++= transformerRecurse(t.id, analysis, prev + ", " + t.name, user)
-            val visualizers = Payola.model.visualizerModel.getAccessibleToUser(Some(user)).filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
-                a.compatibilityTransformerChecks.map { b =>
-                    b.compatibleTransformer.id == t.id
-                }.reduceLeft((a,b) => a || b)
-            }
-            visualizers.map { v =>
-                rows ++= List(List(analysis,prev + ", " + t.name,v.name))
+            if(transformersIds.find(s => s==t.id).isEmpty) {
+                var newTransformersIds: List[String] = transformersIds
+                newTransformersIds ++= List(t.id)
+                rows ++= transformerRecurse(t.id, analysis, prev + ", " + t.name, newTransformersIds, user)
+                val visualizers = Payola.model.visualizerModel.getAccessibleToUser(Some(user))
+                    .filter(_.compatibilityTransformerChecks.length > 0).filter { a =>
+                    a.compatibilityTransformerChecks.map { b =>
+                        b.compatibleTransformer.id == t.id
+                    }.reduceLeft((a, b) => a || b)
+                }
+                visualizers.map { v =>
+                    rows ++= List(List(analysis, prev + ", " + t.name, v.name))
+                }
             }
         }
         rows
@@ -114,7 +119,7 @@ import cz.payola.common.entities.plugins._
                 visualizers.map { v =>
                     rows ++= List(List(an.name,t.name,v.name))
                 }
-                rows ++= transformerRecurse(t.id,an.name,t.name,user)
+                rows ++= transformerRecurse(t.id,an.name,t.name,List(t.id),user)
             }
         }
         successCallback(rows)
