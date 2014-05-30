@@ -8,6 +8,9 @@ import cz.payola.common.entities.plugins._
 @secured
 @remote object PipelineData
 {
+    var transformers: Seq[Transformer] = null
+    var visualizers: Seq[Visualizer] = null
+
     @async def getCompatibleAnalysesWithDataSource(dsID: String, user: User = null)(successCallback: (Seq[Analysis] => Unit))(failCallback: (Throwable => Unit)) {
         val analysis = Payola.model.analysisModel.getAccessibleToUser(Some(user)).filter(_.compatibilityChecks.length>0)
         successCallback(
@@ -65,31 +68,36 @@ import cz.payola.common.entities.plugins._
 
     def transformerRecurse(tID: String, analysis: String, prev: String, transformersIds: List[String], user: User): List[List[String]] = {
         var rows: List[List[String]] = List()
-        val transformers = Payola.model.transformerModel.getAccessibleToUser(Some(user)).filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
+        val trans = transformers.filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
             a.compatibilityTransformerChecks.map { b =>
                 b.compatibleTransformer.id == tID
             }.reduceLeft((a,b) => a || b)
         }
-        transformers.map { t =>
+        trans.map { t =>
             if(transformersIds.find(s => s==t.id).isEmpty) {
-                var newTransformersIds: List[String] = transformersIds
-                newTransformersIds ++= List(t.id)
-                rows ++= transformerRecurse(t.id, analysis, prev + ", " + t.name, newTransformersIds, user)
-                val visualizers = Payola.model.visualizerModel.getAccessibleToUser(Some(user))
-                    .filter(_.compatibilityTransformerChecks.length > 0).filter { a =>
+                val vis = visualizers.filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
                     a.compatibilityTransformerChecks.map { b =>
                         b.compatibleTransformer.id == t.id
                     }.reduceLeft((a, b) => a || b)
                 }
-                visualizers.map { v =>
+                vis.map { v =>
                     rows ++= List(List(analysis, prev + ", " + t.name, v.name))
                 }
+                var newTransformersIds: List[String] = transformersIds
+                newTransformersIds ++= List(t.id)
+                rows ++= transformerRecurse(t.id, analysis, prev + ", " + t.name, newTransformersIds, user)
             }
         }
         rows
     }
 
     @async def getCompatibleTableWithDataSource(dsID: String, user: User = null)(successCallback: (List[List[String]] => Unit))(failCallback: (Throwable => Unit)) {
+        transformers = Payola.model.transformerModel.getAccessibleToUser(Some(user)).filter(t =>
+            (t.compatibilityChecks.length>0)||(t.compatibilityTransformerChecks.length>0)
+        )
+        visualizers = Payola.model.visualizerModel.getAccessibleToUser(Some(user)).filter(v =>
+            (v.compatibilityTransformerChecks.length>0)||(v.compatibilityAnalysisChecks.length>0)
+        )
         var rows: List[List[String]] = List()
         val analyses = Payola.model.analysisModel.getAccessibleToUser(Some(user)).filter(_.compatibilityChecks.length>0).filter{ a =>
             a.compatibilityChecks.map { b =>
@@ -97,26 +105,26 @@ import cz.payola.common.entities.plugins._
             }.reduceLeft((a,b) => a || b)
         }
         analyses.map { an =>
-            val visualizers = Payola.model.visualizerModel.getAccessibleToUser(Some(user)).filter(_.compatibilityAnalysisChecks.length>0).filter{ a =>
+            val vis = visualizers.filter(_.compatibilityAnalysisChecks.length>0).filter{ a =>
                 a.compatibilityAnalysisChecks.map { b =>
                     b.compatibleAnalysis.id == an.id
                 }.reduceLeft((a,b) => a || b)
             }
-            visualizers.map { v =>
+            vis.map { v =>
                 rows ++= List(List(an.name,"",v.name))
             }
-            val transformers = Payola.model.transformerModel.getAccessibleToUser(Some(user)).filter(_.compatibilityChecks.length>0).filter{ a =>
+            val trans = transformers.filter(_.compatibilityChecks.length>0).filter{ a =>
                 a.compatibilityChecks.map { b =>
                     b.compatibleAnalysis.id == an.id
                 }.reduceLeft((a,b) => a || b)
             }
-            transformers.map { t =>
-                val visualizers = Payola.model.visualizerModel.getAccessibleToUser(Some(user)).filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
+            trans.map { t =>
+                val vis = visualizers.filter(_.compatibilityTransformerChecks.length>0).filter{ a =>
                     a.compatibilityTransformerChecks.map { b =>
                         b.compatibleTransformer.id == t.id
                     }.reduceLeft((a,b) => a || b)
                 }
-                visualizers.map { v =>
+                vis.map { v =>
                     rows ++= List(List(an.name,t.name,v.name))
                 }
                 rows ++= transformerRecurse(t.id,an.name,t.name,List(t.id),user)
