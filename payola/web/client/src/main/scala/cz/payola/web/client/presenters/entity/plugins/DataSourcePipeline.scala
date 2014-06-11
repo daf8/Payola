@@ -19,6 +19,9 @@ class DataSourcePipeline(val viewElement: html.Element, dataSourceID: String) ex
         PipelineData.getCompatibleTableWithDataSource(dataSourceID) { rows =>
             initializeView(rows)
             unblockPage()
+            if (rows.length==0){
+                AlertModal.display("No pipelines to show.","There aren't any compatible pipelines with this data source.")
+            }
         } { error =>
             fatalErrorHandler(error)
         }

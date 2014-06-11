@@ -131,5 +131,7 @@ import cz.payola.common.entities.plugins._
             }
         }
         successCallback(rows)
+
+        Payola.model.pipelineModel.x(Some(user),Payola.model.dataSourceModel.getById(dsID).get,Payola.model.analysisModel.getAccessibleToUser(Some(user)).head)
     }
 }

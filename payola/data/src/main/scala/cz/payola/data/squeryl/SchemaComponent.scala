@@ -11,6 +11,7 @@ import cz.payola.data.squeryl.entities.plugins._
 import cz.payola.data.squeryl.entities.plugins.parameters._
 import cz.payola.data.squeryl.entities.analyses._
 import cz.payola.data.squeryl.entities.transformers._
+//import cz.payola.data.squeryl.entities.pipelines._
 import cz.payola.data.squeryl.entities.privileges.PrivilegeDbRepresentation
 import cz.payola.data.squeryl.entities.Group
 
@@ -56,6 +57,9 @@ trait SchemaComponent
         /**Table of [[cz.payola.data.squeryl.entities.Visualizer]] items */
         val visualizers = table[Visualizer]("visualizers")
 
+        /**Table of [[cz.payola.data.squeryl.entities.Pipeline]] items */
+        val pipelines = table[Pipeline]("pipelines")
+
         /**Table of [[cz.payola.data.squeryl.entities.analyses.PluginDbRepresentation]]s */
         val plugins = table[PluginDbRepresentation]("plugins")
 
@@ -94,7 +98,22 @@ trait SchemaComponent
 
         /**Table of [[cz.payola.data.squeryl.entities.transformers.TransformerPluginInstanceBinding]]s */
         val transformerPluginInstanceBindings = table[TransformerPluginInstanceBinding]("transformerPluginInstanceBindings")
+/*
+        /**Table of [[cz.payola.data.squeryl.entities.pipelines.AnalysisTransformerBinding]]s */
+        val analysisTransformerBindings = table[AnalysisTransformerBinding]("analysisTransformerBindings")
 
+        /**Table of [[cz.payola.data.squeryl.entities.pipelines.AnalysisVisualizerBinding]]s */
+        val analysisVisualizerBindings = table[AnalysisVisualizerBinding]("analysisVisualizerBindings")
+
+        /**Table of [[cz.payola.data.squeryl.entities.pipelines.DataSourceAnalysisBinding]]s */
+        val dataSourceAnalysisBindings = table[DataSourceAnalysisBinding]("dataSourceAnalysisBindings")
+
+        /**Table of [[cz.payola.data.squeryl.entities.pipelines.TransformerTransformerBinding]]s */
+        val transformerTransformerBindings = table[TransformerTransformerBinding]("transformerTransformerBindings")
+
+        /**Table of [[cz.payola.data.squeryl.entities.pipelines.TransformerVisualizerBinding]]s */
+        val transformerVisualizerBindings = table[TransformerVisualizerBinding]("transformerVisualizerBindings")
+*/
         /**Table of [[entities.analyses.CompatibilityCheck]]s */
         val compatibilityChecks = table[CompatibilityCheck]("compatibilityCheck")
 
@@ -161,6 +180,13 @@ trait SchemaComponent
          */
         lazy val transformerOwnership = oneToManyRelation(users, transformers).via(
             (u, t) => Option(u.id) === t.ownerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Pipeline]] to its owner
+         * ([[cz.payola.data.squeryl.entities.User]]s)
+         */
+        lazy val pipelineOwnership = oneToManyRelation(users, pipelines).via(
+            (u, p) => Option(u.id) === p.ownerId)
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.settings.Customization]] to its owner
@@ -268,50 +294,50 @@ trait SchemaComponent
             (pi, cc) => pi.id === cc.sourcePluginInstanceId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
-         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
+         * Relation that associates [[cz.payola.data.squeryl.entities.transformers.TransformerCompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.plugins.TransformerPluginInstance]
          */
         lazy val checkingsOfSourceTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, transformerCompatibilityChecks).via(
             (pi, cc) => pi.id === cc.sourcePluginInstanceId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
-         * [[cz.payola.data.squeryl.entities.analyses.PluginInstance]]
+         * Relation that associates [[cz.payola.data.squeryl.entities.transformers.TransformerToTransformerCompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.plugins.TransformerPluginInstance]]
          */
         lazy val checkingsOfSourceTransformerToTransformerPluginInstances = oneToManyRelation(transformerPluginInstances, transformerToTransformerCompatibilityChecks).via(
             (pi, cc) => pi.id === cc.sourcePluginInstanceId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
+         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.CompatibilityCheck]]s to a
          * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
          */
         lazy val checkingsOfCompatibleDataSources = oneToManyRelation(dataSources, compatibilityChecks).via(
             (ds, cc) => ds.id === cc.compatibleDataSourceId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
-         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         * Relation that associates [[cz.payola.data.squeryl.entities.transformers.TransformerCompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.Analysis]]
          */
         lazy val checkingsOfCompatibleAnalysis = oneToManyRelation(analyses, transformerCompatibilityChecks).via(
             (a, cc) => a.id === cc.compatibleAnalysisId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
-         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         * Relation that associates [[cz.payola.data.squeryl.entities.transformers.TransformerToTransformerCompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.Transformer]]
          */
         lazy val checkingsOfCompatibleTransformer = oneToManyRelation(transformers, transformerToTransformerCompatibilityChecks).via(
             (t, cc) => t.id === cc.compatibleTransformerId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
-         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         * Relation that associates [[cz.payola.data.squeryl.entities.VisualizerToAnalysisCompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.Analysis]]
          */
         lazy val visualizerCheckingsOfCompatibleAnalysis = oneToManyRelation(analyses, visualizerToAnalysisCompatibilityChecks).via(
             (a, cc) => a.id === cc.compatibleAnalysisId)
 
         /**
-         * Relation that associates [[cz.payola.data.squeryl.entities.analyses.PluginInstanceBinding]]s to a
-         * [[cz.payola.data.squeryl.entities.analyses.DataSource]]
+         * Relation that associates [[cz.payola.data.squeryl.entities.VisualizerToTransformerCompatibilityCheck]]s to a
+         * [[cz.payola.data.squeryl.entities.Transformer]]
          */
         lazy val visualizerCheckingsOfCompatibleTransformer = oneToManyRelation(transformers, visualizerToTransformerCompatibilityChecks).via(
             (t, cc) => t.id === cc.compatibleTransformerId)
@@ -510,7 +536,7 @@ trait SchemaComponent
 
         /**
          * Relation that associates [[cz.payola.data.squeryl.entities.settings.Customization]]s
-         * to a [[cz.payola.data.squeryl.entities.Analysis]]
+         * to a [[cz.payola.data.squeryl.entities.Transformer]]
          */
         lazy val customizationsOfTransformers = oneToManyRelation(customizations, transformers).via(
             (o, a) => a.defaultCustomizationId === Some(o.id))
@@ -530,6 +556,139 @@ trait SchemaComponent
             (c, p) => c.id === p.classCustomizationId)
 
         /**
+         * Relation that associates ([[cz.payola.data.squeryl.entities.Pipeline]]s)
+         * to [[cz.payola.data.squeryl.entities.plugins.DataSource]]s
+         */
+        lazy val pipelineDataSource = manyToManyRelation(dataSources, pipelines).via[PipelineDataSource](
+            (ds, p, pds) => (pds.dsId === ds.id, p.id === pds.pipelineId))
+/*
+        /**
+         * Relation that associates ([[cz.payola.data.squeryl.entities.Pipeline]]s)
+         * to [[cz.payola.data.squeryl.entities.Transformer]]s
+         */
+        lazy val pipelineTransformer = manyToManyRelation(pipelines, transformers).via[PipelineTransformer](
+            (p, t, pds) => (pds.pipelineId === p.id, t.id === pds.trandformerId))
+*/
+        /**
+         * Relation that associates ([[cz.payola.data.squeryl.entities.Pipeline]]s)
+         * to [[cz.payola.data.squeryl.entities.Analysis]]s
+         */
+        lazy val pipelineAnalysis = oneToManyRelation(analyses, pipelines).via(
+            (a, p) => a.id === p.analysisId)
+/*
+        /**
+         * Relation that associates ([[cz.payola.data.squeryl.entities.Pipeline]]s)
+         * to [[cz.payola.data.squeryl.entities.Visualizer]]s
+         */
+        lazy val pipelineVisualizer = oneToManyRelation(visualizers, pipelines).via(
+            (v, p) => v.id === p.visualizerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Pipeline]] to an
+         * [[cz.payola.data.squeryl.entities.pipelines.DataSourceAnalysisBinding]]
+         */
+        lazy val pipelinesDataSourceAnalysisBindings = oneToManyRelation(pipelines, DataSourceAnalysisBinding).via(
+            (p, dsab) => p.id === dsab.pipelineId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Pipeline]] to an
+         * [[cz.payola.data.squeryl.entities.pipelines.TransformerTransformerBinding]]
+         */
+        lazy val pipelinesTransformerTransformerBindings = oneToManyRelation(pipelines, TransformerTransformerBinding).via(
+            (p, ttb) => p.id === ttb.pipelineId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Pipeline]] to an
+         * [[cz.payola.data.squeryl.entities.pipelines.AnalysisTransformerBinding]]
+         */
+        lazy val pipelinesAnalysisTransformerBindings = oneToManyRelation(pipelines, AnalysisTransformerBinding).via(
+            (p, atb) => p.id === atb.pipelineId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Pipeline]] to an
+         * [[cz.payola.data.squeryl.entities.pipelines.AnalysisVisualizerBinding]]
+         */
+        lazy val pipelinesAnalysisVisualizerBindings = oneToManyRelation(pipelines, AnalysisVisualizerBinding).via(
+            (p, avb) => p.id === avb.pipelineId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Pipeline]] to an
+         * [[cz.payola.data.squeryl.entities.pipelines.TransformerVisualizerBinding]]
+         */
+        lazy val pipelinesTransformerVisualizerBindings = oneToManyRelation(pipelines, TransformerVisualizerBinding).via(
+            (p, tvb) => p.id === tvb.pipelineId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.plugins.DataSource]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.DataSourceAnalysisBinding]] as a source
+         */
+        lazy val bindingsOfSourceDataSource = oneToManyRelation(dataSources, dataSourceAnalysisBindings).via(
+            (ds, dsab) => ds.id === dsab.sourceDataSourceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Analysis]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.AnalysisVisualizerBinding]] as a source
+         */
+        lazy val bindingsOfSourceAnalysisVisualizer = oneToManyRelation(analyses, analysisVisualizerBindings).via(
+            (a, avb) => a.id === avb.sourceAnalysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Analysis]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.AnalysisTransformerBinding]] as a source
+         */
+        lazy val bindingsOfSourceAnalysisTransformer = oneToManyRelation(analyses, analysisTransformerBindings).via(
+            (a, atb) => a.id === atb.sourceAnalysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Transformer]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.TransformerTransformerBinding]] as a source
+         */
+        lazy val bindingsOfSourceTransformerTransformer = oneToManyRelation(transformers, transformerTransformerBindings).via(
+            (t, ttb) => t.id === ttb.sourceDataSourceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Transformer]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.TransformerVisualizerBinding]] as a source
+         */
+        lazy val bindingsOfSourceTransformerVisualizer = oneToManyRelation(transformers, transformerVisualizerBindings).via(
+            (t, tvb) => t.id === tvb.sourceDataSourceId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Analysis]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.DataSourceAnalysisBinding]] as a target
+         */
+        lazy val bindingsOfTargetAnalysis = oneToManyRelation(analyses, dataSourceAnalysisBindings).via(
+            (a, dsab) => a.id === dsab.targetAnalysisId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Transformer]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.AnalysisTransformerBinding]] as a target
+         */
+        lazy val bindingsOfTargetAnalysisTransformer = oneToManyRelation(transformers, analysisTransformerBindings).via(
+                (t, atb) => t.id === atb.targetTransformerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Transformer]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.TransformerTransformerBinding]] as a target
+         */
+        lazy val bindingsOfTargetTransformerTransformer = oneToManyRelation(transformers, transformerTransformerBindings).via(
+            (t, ttb) => t.id === ttb.targetTransformerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Visualizer]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.AnalysisVisualizerBinding]] as a target
+         */
+        lazy val bindingsOfTargetAnalysisVisualizer = oneToManyRelation(visualizers, analysisVisualizerBindings).via(
+            (v, avb) => v.id === avb.targetVisualizerId)
+
+        /**
+         * Relation that associates [[cz.payola.data.squeryl.entities.Visualizer]]s to a
+         * [[cz.payola.data.squeryl.entities.pipelines.TransformerVisualizerBinding]] as a target
+         */
+        lazy val bindingsOfTargetTransformerVisualizer = oneToManyRelation(visualizers, transformerVisualizerBindings).via(
+            (v, tvb) => v.id === tvb.targetVisualizerId)
+*/
+        /**
          * All the entities have to be created using custom factories in order to inject their dependencies via the
          * implicit constructor parameter.
          */
@@ -548,6 +707,9 @@ trait SchemaComponent
             },
             factoryFor(visualizers) is {
                 new Visualizer("", "", None, true)
+            },
+            factoryFor(pipelines) is {
+                new Pipeline("", "", None, true, "", null)
             },
             factoryFor(plugins) is {
                 new PluginDbRepresentation("", "", "", 0, None, false)
@@ -579,6 +741,21 @@ trait SchemaComponent
             factoryFor(visualizerToTransformerCompatibilityChecks) is {
                 new VisualizerToTransformerCompatibilityCheck("", null, null)
             },
+            /*factoryFor(dataSourceAnalysisBindings) is {
+                new DataSourceAnalysisBinding("", null, null)
+            },
+            factoryFor(analysisTransformerBindings) is {
+                new AnalysisTransformerBinding("", null, null)
+            },
+            factoryFor(analysisVisualizerBindings) is {
+                new AnalysisVisualizerBinding("", null, null)
+            },
+            factoryFor(transformerTransformerBindings) is {
+                new TransformerTransformerBinding("", null, null)
+            },
+            factoryFor(transformerVisualizerBindings) is {
+                new TransformerVisualizerBinding("", null, null)
+            },*/
             factoryFor(booleanParameters) is {
                 new BooleanParameter("", "", false, None)
             },
@@ -712,7 +889,47 @@ trait SchemaComponent
                     columns(binding.targetPluginInstanceId, binding.inputIndex) are (unique),
                     columns(binding.sourcePluginInstanceId, binding.transformerId) are (unique)
                 ))
+/*
+            on(dataSourceAnalysisBindings)(binding =>
+                declare(
+                    binding.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    binding.targetAnalysisId is (dbType(COLUMN_TYPE_ID)),
+                    binding.sourceDataSourceId is (dbType(COLUMN_TYPE_ID)),
+                    binding.pipelineId is (dbType(COLUMN_TYPE_ID))
+                ))
 
+            on(analysisTransformerBindings)(binding =>
+                declare(
+                    binding.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    binding.targetTransformerId is (dbType(COLUMN_TYPE_ID)),
+                    binding.sourceAnalysisId is (dbType(COLUMN_TYPE_ID)),
+                    binding.pipelineId is (dbType(COLUMN_TYPE_ID))
+                ))
+
+            on(analysisVisualizerBindings)(binding =>
+                declare(
+                    binding.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    binding.targetVisualizerId is (dbType(COLUMN_TYPE_ID)),
+                    binding.sourceAnalysisId is (dbType(COLUMN_TYPE_ID)),
+                    binding.pipelineId is (dbType(COLUMN_TYPE_ID))
+                ))
+
+            on(transformerTransformerBindings)(binding =>
+                declare(
+                    binding.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    binding.targetTransformerId is (dbType(COLUMN_TYPE_ID)),
+                    binding.sourceTransformerId is (dbType(COLUMN_TYPE_ID)),
+                    binding.pipelineId is (dbType(COLUMN_TYPE_ID))
+                ))
+
+            on(transformerVisualizerBindings)(binding =>
+                declare(
+                    binding.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
+                    binding.targetVisualizerId is (dbType(COLUMN_TYPE_ID)),
+                    binding.sourceTransformerId is (dbType(COLUMN_TYPE_ID)),
+                    binding.pipelineId is (dbType(COLUMN_TYPE_ID))
+                ))
+*/
             on(transformerCompatibilityChecks)(checking =>
                 declare(
                     checking.id is(primaryKey, (dbType(COLUMN_TYPE_ID))),
@@ -858,6 +1075,17 @@ trait SchemaComponent
                     columns(analysis.name, analysis.ownerId) are (unique)
                 ))
 
+            on(pipelines)(pipeline =>
+                declare(
+                    pipeline.id is(primaryKey, dbType(COLUMN_TYPE_ID)),
+                    pipeline.name is (dbType(COLUMN_TYPE_NAME)),
+                    pipeline.ownerId is (dbType(COLUMN_TYPE_ID)),
+                    pipeline._desc is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    pipeline.description is (dbType(COLUMN_TYPE_DESCRIPTION)),
+                    pipeline.analysisId is (dbType(COLUMN_TYPE_ID)),
+                    columns(pipeline.name, pipeline.ownerId) are (unique)
+                ))
+
             on(transformers)(transformer =>
                 declare(
                     transformer.id is (primaryKey, dbType(COLUMN_TYPE_ID)),
@@ -963,6 +1191,13 @@ trait SchemaComponent
             visualizersToAnalysisCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
             visualizersToTransformerCompatibilityChecks.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
+            // When a Pipeline is deleted
+            pipelineAnalysis.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            pipelineDataSource.leftForeignKeyDeclaration.constrainReference(onDelete cascade)
+            pipelineDataSource.rightForeignKeyDeclaration.constrainReference(onDelete cascade)
+            //pipelineTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            //pipelineVisualizer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+
             // When a Parameter is deleted, all of the its parameterValues will get deleted.
             valuesOfBooleanParameters.foreignKeyDeclaration.constrainReference(onDelete cascade)
             valuesOfFloatParameters.foreignKeyDeclaration.constrainReference(onDelete cascade)
@@ -992,7 +1227,18 @@ trait SchemaComponent
             bindingsOfTargetPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             bindingsOfTransformerSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             bindingsOfTransformerTargetPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
-
+/*
+            bindingsOfSourceDataSource.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfSourceAnalysisTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfSourceAnalysisVisualizer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfSourceTransformerTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfSourceTransformerVisualizer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTargetAnalysis.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTargetAnalysisTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTargetAnalysisVisualizer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTargetTransformerTransformer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            bindingsOfTargetTransformerVisualizer.foreignKeyDeclaration.constrainReference(onDelete cascade)
+*/
             // When PluginInstance is deleted, delete all its Source/Target bindings.
             checkingsOfSourcePluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
             checkingsOfSourceTransformerPluginInstances.foreignKeyDeclaration.constrainReference(onDelete cascade)
@@ -1020,6 +1266,7 @@ trait SchemaComponent
             transformerOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
             dataSourceOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
             pluginOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
+            pipelineOwnership.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
             // When customization is removed, remove all sub-customizations
             classCustomizationsOfCustomizations.foreignKeyDeclaration.constrainReference(onDelete cascade)

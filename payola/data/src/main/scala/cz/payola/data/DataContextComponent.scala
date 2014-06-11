@@ -74,6 +74,11 @@ trait DataContextComponent
     val visualizerRepository: VisualizerRepository
 
     /**
+     * A repository to access persisted pipelines
+     */
+    val pipelineRepository: PipelineRepository
+
+    /**
      * A registry that provides repositories by class name of persisted entity
      */
     lazy val repositoryRegistry = new RepositoryRegistry(Map(
@@ -86,7 +91,8 @@ trait DataContextComponent
         classOf[DataSource] -> dataSourceRepository,
         classOf[Customization] -> customizationRepository,
         classOf[Prefix] -> prefixRepository,
-        classOf[Visualizer] -> visualizerRepository
+        classOf[Visualizer] -> visualizerRepository,
+        classOf[Pipeline] -> pipelineRepository
     ))
 
     /**
@@ -294,24 +300,22 @@ trait DataContextComponent
     }
 
     /**
-     * Defines operations of repository accessing visualizer
+     * Defines operations of repository accessing visualizers
      */
     trait VisualizerRepository
         extends Repository[Visualizer]
         with NamedEntityRepository[Visualizer]
         with OptionallyOwnedEntityRepository[Visualizer]
         with ShareableEntityRepository[Visualizer]
-    {
-        //def removeCompatibilityAnalysisCheckById(compatibilityCheckId: String): Boolean
 
-        //def removeCompatibilityTransformerCheckById(compatibilityCheckId: String): Boolean
-
-        //def loadCompatibilityAnalysisChecks(visualizer: Visualizer)
-
-        //def loadCompatibilityTransformerChecks(visualizer: Visualizer)
-
-        //def persistParameterValue(parameterValue: ParameterValue[_])
-    }
+    /**
+     * Defines operations of repository accessing pipelines
+     */
+    trait PipelineRepository
+        extends Repository[Pipeline]
+        with NamedEntityRepository[Pipeline]
+        with OptionallyOwnedEntityRepository[Pipeline]
+        with ShareableEntityRepository[Pipeline]
 
     /**
      * Defines operations of repository accessing ontology customizations
